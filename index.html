@@ -7,741 +7,575 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.7.0/docx.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0d0d0d;
-  --surface: #161616;
-  --card: #1e1e1e;
-  --border: #2a2a2a;
-  --green: #00c853;
-  --green2: #69f0ae;
-  --green-dim: rgba(0,200,83,0.12);
-  --text: #f0f0f0;
-  --muted: #666;
-  --muted2: #444;
-  --accent: #00e5ff;
-  --gold: #ffd740;
-  --red: #ff5252;
+  --bg:#0d0d0d; --surface:#161616; --card:#1e1e1e; --border:#2a2a2a;
+  --green:#00c853; --green2:#69f0ae; --green-dim:rgba(0,200,83,0.12);
+  --text:#f0f0f0; --muted:#666; --muted2:#3a3a3a; --accent:#00e5ff;
+  --red:#ff5252; --gold:#ffd740;
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-html { height: 100%; height: -webkit-fill-available; }
-body {
-  font-family: 'Outfit', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
-  padding-bottom: env(safe-area-inset-bottom, 16px);
+*{margin:0;padding:0;box-sizing:border-box;}
+html{height:100%;height:-webkit-fill-available;}
+body{
+  font-family:'Outfit',sans-serif; background:var(--bg); color:var(--text);
+  display:flex; flex-direction:column;
+  height:100vh; height:100dvh; overflow:hidden;
+  padding-bottom:env(safe-area-inset-bottom,0px);
 }
 
 /* HEADER */
-.header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-  z-index: 100;
+.header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px; background:var(--surface);
+  border-bottom:1px solid var(--border); flex-shrink:0; z-index:100;
 }
-.logo { display:flex; align-items:center; gap:8px; }
-.logo-icon {
-  width:32px; height:32px;
-  background: linear-gradient(135deg, var(--green), #00897b);
-  border-radius:8px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:16px;
+.logo{display:flex;align-items:center;gap:8px;}
+.logo-icon{
+  width:30px;height:30px;
+  background:linear-gradient(135deg,var(--green),#00897b);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;
+  box-shadow:0 0 10px rgba(0,200,83,0.3);
 }
-.logo-text { font-weight:800; font-size:18px; letter-spacing:-0.5px; }
-.logo-text span { color:var(--green); }
-.header-actions { display:flex; gap:8px; }
-.hbtn {
-  background: var(--card); border:1px solid var(--border);
-  color: var(--text); padding:6px 12px; border-radius:8px;
-  font-family:'Outfit',sans-serif; font-size:12px; font-weight:600;
-  cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:5px;
+.logo-text{font-weight:800;font-size:17px;letter-spacing:-0.5px;}
+.logo-text span{color:var(--green);}
+.header-right{display:flex;gap:8px;align-items:center;}
+.hbtn{
+  background:var(--card);border:1px solid var(--border);
+  color:var(--text);padding:6px 11px;border-radius:8px;
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
+  cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px;
 }
-.hbtn:hover { border-color:var(--green); color:var(--green); }
+.hbtn:hover{border-color:var(--green);color:var(--green);}
 
-/* MAIN LAYOUT */
-.app { flex:1; display:flex; overflow:hidden; }
+/* LAYOUT */
+.app{flex:1;display:flex;overflow:hidden;}
 
-/* SIDEBAR */
-.sidebar {
-  width:64px; background:var(--surface);
+/* SIDEBAR desktop */
+.sidebar{
+  width:60px;background:var(--surface);
   border-right:1px solid var(--border);
-  display:flex; flex-direction:column; align-items:center;
-  padding:12px 0; gap:4px; flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px 0;gap:2px;flex-shrink:0;
 }
-.nav-btn {
-  width:44px; height:44px;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:3px; border-radius:10px; cursor:pointer;
-  transition:all 0.15s; background:transparent; border:none;
-  font-size:18px; color:var(--muted);
+.nav-btn{
+  width:46px;height:46px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;border-radius:10px;cursor:pointer;
+  transition:all 0.15s;background:transparent;border:none;
+  font-size:18px;color:var(--muted);
 }
-.nav-btn span { font-size:9px; color:var(--muted); font-family:'Outfit',sans-serif; font-weight:500; }
-.nav-btn:hover { background:var(--card); color:var(--text); }
-.nav-btn:hover span { color:var(--text); }
-.nav-btn.active { background:var(--green-dim); color:var(--green); }
-.nav-btn.active span { color:var(--green); }
-.nav-divider { width:32px; height:1px; background:var(--border); margin:4px 0; }
+.nav-btn span{font-size:8px;color:var(--muted);font-family:'Outfit',sans-serif;font-weight:600;}
+.nav-btn:hover{background:var(--card);}
+.nav-btn.active{background:var(--green-dim);color:var(--green);}
+.nav-btn.active span{color:var(--green);}
+.nav-sep{width:30px;height:1px;background:var(--border);margin:4px 0;}
 
 /* CONTENT */
-.content { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+.content{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.panel{display:none;flex:1;overflow:hidden;flex-direction:column;}
+.panel.active{display:flex;}
 
-/* PANELS */
-.panel { display:none; flex:1; overflow:hidden; flex-direction:column; }
-.panel.active { display:flex; }
+/* ======== SCAN PANEL ======== */
+.cam-container{
+  flex:1;position:relative;background:#000;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+#cam-video{width:100%;height:100%;object-fit:cover;display:none;}
+#cam-snap{display:none;width:100%;height:100%;object-fit:contain;}
 
-/* ===== SCAN PANEL ===== */
-.scan-workspace {
-  flex:1; display:flex; flex-direction:column; overflow:hidden;
-  position:relative;
+/* Idle state */
+.cam-idle{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;pointer-events:none;
 }
+.cam-idle-icon{font-size:64px;opacity:0.2;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.cam-idle-title{font-size:17px;font-weight:700;color:var(--muted);}
+.cam-idle-sub{font-size:12px;color:var(--muted2);text-align:center;max-width:240px;line-height:1.6;}
+.cam-idle-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;pointer-events:all;}
+.cam-idle-btn{
+  display:flex;align-items:center;gap:7px;padding:11px 20px;border-radius:12px;
+  border:1px solid var(--border);background:var(--card);
+  color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.2s;
+}
+.cam-idle-btn:hover,.cam-idle-btn:active{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+.cam-idle-btn.primary{background:var(--green);color:#000;border-color:var(--green);}
+.cam-idle-btn.primary:hover{background:var(--green2);}
 
-/* Camera view */
-.cam-container {
-  flex:1; position:relative; background:#000; overflow:hidden;
-  display:flex; align-items:center; justify-content:center;
-}
-#cam-video {
-  width:100%; height:100%; object-fit:cover; display:none;
-}
-.cam-idle {
-  display:flex; flex-direction:column; align-items:center;
-  justify-content:center; gap:20px; color:var(--muted);
-  cursor: pointer; width:100%; height:100%;
-  transition: background 0.2s;
-}
-.cam-idle:hover, .cam-idle:active { background: rgba(0,200,83,0.04); }
-.cam-idle-icon {
-  font-size:72px; opacity:0.25;
-  animation: float-icon 3s ease-in-out infinite;
-}
-@keyframes float-icon {
-  0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)}
-}
-.cam-idle h3 { font-size:18px; font-weight:700; color:var(--muted); }
-.cam-idle p { font-size:13px; color:var(--muted2); text-align:center; max-width:260px; line-height:1.6; }
-.cam-idle-actions {
-  display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px;
-}
-.cam-idle-btn {
-  display:flex; align-items:center; gap:8px;
-  padding:12px 22px; border-radius:12px;
-  border:1px solid var(--border); background:var(--card);
-  color:var(--text); font-family:'Outfit',sans-serif;
-  font-size:14px; font-weight:600; cursor:pointer;
-  transition:all 0.2s;
-}
-.cam-idle-btn:hover, .cam-idle-btn:active {
-  border-color:var(--green); color:var(--green); background:var(--green-dim);
-  transform:translateY(-2px);
-}
-.cam-idle-btn.primary {
-  background:var(--green); color:#000; border-color:var(--green);
-}
-.cam-idle-btn.primary:hover { background:var(--green2); }
-
-/* Document detection overlay */
-.detect-overlay {
-  position:absolute; inset:0; pointer-events:none;
-}
-.detect-box {
-  position:absolute;
-  border:2px solid var(--green);
-  box-shadow: 0 0 0 2000px rgba(0,0,0,0.35);
-  display:none;
-  transition: all 0.2s ease;
-}
-.detect-box.show { display:block; }
-.detect-label {
-  position:absolute; top:-26px; left:0;
-  background:var(--green); color:#000;
-  font-size:11px; font-weight:700; padding:3px 8px;
-  border-radius:4px; white-space:nowrap;
-  font-family:'Outfit',sans-serif;
-}
-/* Corner handles */
-.det-corner {
-  position:absolute; width:16px; height:16px;
-  border-color:var(--green); border-style:solid;
-}
-.det-corner.tl { top:-2px; left:-2px; border-width:3px 0 0 3px; }
-.det-corner.tr { top:-2px; right:-2px; border-width:3px 3px 0 0; }
-.det-corner.bl { bottom:-2px; left:-2px; border-width:0 0 3px 3px; }
-.det-corner.br { bottom:-2px; right:-2px; border-width:0 3px 3px 0; }
-
-/* Scan line animation */
-.scan-anim {
-  position:absolute; left:0; right:0; height:2px;
-  background:linear-gradient(90deg,transparent,var(--green),transparent);
-  animation: scanline 2s linear infinite;
-  display:none;
-}
-.scan-anim.active { display:block; }
-@keyframes scanline {
-  0% { top:10%; } 100% { top:90%; }
-}
-
-/* Bottom camera controls */
-.cam-controls {
-  background: var(--surface);
-  border-top:1px solid var(--border);
-  padding:12px 16px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-  flex-shrink:0;
-  position: relative;
-  z-index: 10;
-}
-.cam-left, .cam-right { display:flex; gap:8px; flex:1; }
-.cam-right { justify-content:flex-end; }
-.ctrl-btn {
-  background:var(--card); border:1px solid var(--border);
-  color:var(--text); padding:8px 14px; border-radius:9px;
-  font-family:'Outfit',sans-serif; font-size:12px; font-weight:600;
-  cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:6px;
-}
-.ctrl-btn:hover { border-color:var(--green); color:var(--green); }
-.ctrl-btn.primary {
-  background:var(--green); color:#000; border-color:var(--green);
-  font-size:13px; padding:10px 20px;
-}
-.ctrl-btn.primary:hover { background:var(--green2); }
-.ctrl-btn:disabled { opacity:0.3; cursor:not-allowed; }
+/* Detection overlay on video */
+.detect-layer{position:absolute;inset:0;pointer-events:none;}
+#detect-svg{width:100%;height:100%;position:absolute;inset:0;}
 
 /* Doc type badge */
-.doc-type-badge {
-  position:absolute; top:12px; left:50%; transform:translateX(-50%);
-  background:rgba(0,0,0,0.7); border:1px solid var(--green);
-  color:var(--green); font-size:11px; font-weight:700;
-  padding:5px 14px; border-radius:20px;
-  font-family:'Outfit',sans-serif; letter-spacing:0.5px;
-  display:none; backdrop-filter:blur(8px);
+.doc-badge{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.75);border:1px solid var(--green);
+  color:var(--green);font-size:11px;font-weight:700;
+  padding:5px 14px;border-radius:20px;backdrop-filter:blur(8px);
+  font-family:'Outfit',sans-serif;display:none;white-space:nowrap;
 }
-.doc-type-badge.show { display:block; }
+.doc-badge.show{display:block;}
 
-/* ===== EDIT PANEL ===== */
-.edit-layout {
-  flex:1; display:flex; overflow:hidden;
+/* Scan line */
+.scan-line{
+  position:absolute;left:0;right:0;height:2px;top:20%;
+  background:linear-gradient(90deg,transparent,var(--green),transparent);
+  animation:scanmove 2s linear infinite;display:none;
 }
-.edit-canvas-wrap {
-  flex:1; position:relative; overflow:hidden;
-  background:#111; display:flex; align-items:center; justify-content:center;
-}
-#edit-canvas {
-  max-width:100%; max-height:100%;
-  cursor:crosshair;
-  display:block;
-}
-.edit-canvas-empty {
-  color:var(--muted); text-align:center;
-}
-.edit-canvas-empty .e-icon { font-size:48px; margin-bottom:12px; opacity:0.3; }
+.scan-line.on{display:block;}
+@keyframes scanmove{0%{top:15%}100%{top:85%}}
 
-/* Edit sidebar */
-.edit-tools {
-  width:220px; background:var(--surface);
-  border-left:1px solid var(--border);
-  overflow-y:auto; flex-shrink:0;
-  padding:12px;
-  display:flex; flex-direction:column; gap:12px;
-}
-.tool-section h4 {
-  font-size:10px; font-weight:700; text-transform:uppercase;
-  letter-spacing:1px; color:var(--muted); margin-bottom:8px;
-}
-
-/* Filter buttons */
-.filter-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-.filter-btn {
-  background:var(--card); border:1px solid var(--border);
-  color:var(--text); padding:8px 6px; border-radius:8px;
-  cursor:pointer; text-align:center; font-size:11px; font-weight:600;
-  font-family:'Outfit',sans-serif; transition:all 0.15s;
-}
-.filter-btn:hover, .filter-btn.active {
-  border-color:var(--green); color:var(--green); background:var(--green-dim);
-}
-
-/* Sliders */
-.slider-row { display:flex; flex-direction:column; gap:5px; }
-.slider-label {
-  display:flex; justify-content:space-between;
-  font-size:11px; color:var(--muted);
-}
-.slider-label span { color:var(--green); font-family:'JetBrains Mono',monospace; }
-input[type=range] {
-  width:100%; -webkit-appearance:none;
-  height:3px; background:var(--border); border-radius:2px; outline:none;
-}
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance:none;
-  width:14px; height:14px; border-radius:50%;
-  background:var(--green); cursor:pointer;
-  box-shadow:0 0 6px rgba(0,200,83,0.5);
-}
-
-/* Crop/resize presets */
-.preset-list { display:flex; flex-direction:column; gap:4px; }
-.preset-item {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:7px 10px; border-radius:7px; cursor:pointer;
-  border:1px solid transparent; font-size:12px; transition:all 0.15s;
-  color:var(--muted);
-}
-.preset-item:hover, .preset-item.active {
-  background:var(--card); border-color:var(--border); color:var(--text);
-}
-.preset-item.active { border-color:var(--green); color:var(--green); }
-.preset-size { font-size:10px; color:var(--muted2); font-family:'JetBrains Mono',monospace; }
-
-/* Selection mode */
-.sel-mode-info {
-  background:var(--green-dim); border:1px solid rgba(0,200,83,0.3);
-  border-radius:8px; padding:8px 10px;
-  font-size:11px; color:var(--green); display:none;
-}
-.sel-mode-info.show { display:block; }
-
-/* Selection rectangle on canvas */
-#sel-overlay {
-  position:absolute; border:2px dashed var(--accent);
-  background:rgba(0,229,255,0.08); pointer-events:none; display:none;
-}
-
-/* ===== PAGES PANEL ===== */
-.pages-layout { flex:1; display:flex; overflow:hidden; }
-.pages-list {
-  flex:1; overflow-y:auto; padding:16px;
-  display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-  gap:12px; align-content:start;
-}
-.page-thumb {
-  background:var(--card); border:1px solid var(--border);
-  border-radius:10px; overflow:hidden; cursor:pointer;
-  transition:all 0.2s; position:relative;
-}
-.page-thumb:hover { border-color:var(--green); transform:translateY(-2px); }
-.page-thumb img { width:100%; aspect-ratio:3/4; object-fit:cover; display:block; }
-.page-thumb-footer {
-  padding:6px 8px; display:flex; align-items:center; justify-content:space-between;
-}
-.page-num { font-size:11px; font-weight:700; color:var(--muted); }
-.page-del {
-  background:transparent; border:none; cursor:pointer;
-  color:var(--muted); font-size:14px; padding:2px;
-  transition:color 0.15s;
-}
-.page-del:hover { color:var(--red); }
-.pages-empty {
-  grid-column:1/-1; text-align:center; color:var(--muted);
-  padding:60px 20px;
-}
-.pages-empty .pe-icon { font-size:48px; opacity:0.2; margin-bottom:12px; }
-
-/* Pages sidebar */
-.pages-tools {
-  width:200px; background:var(--surface);
-  border-left:1px solid var(--border);
-  padding:16px 12px;
-  display:flex; flex-direction:column; gap:10px;
+/* Bottom controls */
+.cam-controls{
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:10px 14px;
+  padding-bottom:max(10px,env(safe-area-inset-bottom,10px));
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
   flex-shrink:0;
 }
-.pages-tools h4 { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
-
-/* Export */
-.export-btn {
-  display:flex; align-items:center; gap:10px;
-  padding:10px 12px; border-radius:9px;
-  border:1px solid var(--border); background:var(--card);
-  cursor:pointer; transition:all 0.15s; width:100%;
-  font-family:'Outfit',sans-serif;
+.cam-left,.cam-right{display:flex;gap:7px;flex:1;}
+.cam-right{justify-content:flex-end;}
+.cbtn{
+  display:flex;align-items:center;gap:6px;padding:9px 14px;
+  border-radius:9px;border:1px solid var(--border);background:var(--card);
+  color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
+  cursor:pointer;transition:all 0.15s;white-space:nowrap;
 }
-.export-btn:hover { border-color:var(--green); background:var(--green-dim); }
-.export-btn-icon { font-size:20px; }
-.export-btn-info { text-align:left; }
-.export-btn-name { font-size:13px; font-weight:700; color:var(--text); }
-.export-btn-desc { font-size:10px; color:var(--muted); }
+.cbtn:hover{border-color:var(--green);color:var(--green);}
+.cbtn.primary{background:var(--green);color:#000;border-color:var(--green);font-size:13px;padding:10px 18px;}
+.cbtn.primary:hover{background:var(--green2);}
+.cbtn:disabled{opacity:0.35;cursor:not-allowed;}
 
-/* ===== OCR PANEL ===== */
-.ocr-layout { flex:1; display:flex; overflow:hidden; gap:0; }
-.ocr-image-side {
-  flex:1; background:#111; position:relative;
-  display:flex; align-items:center; justify-content:center; overflow:hidden;
+/* ======== CROP PANEL ======== */
+.crop-wrap{
+  flex:1;position:relative;background:#111;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
-#ocr-canvas { max-width:100%; max-height:100%; cursor:crosshair; display:block; }
-.ocr-sel-hint {
-  position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
-  background:rgba(0,0,0,0.75); border:1px solid var(--accent);
-  color:var(--accent); font-size:11px; padding:5px 14px; border-radius:20px;
-  font-family:'Outfit',sans-serif; backdrop-filter:blur(8px);
+#crop-canvas{display:block;max-width:100%;max-height:100%;cursor:crosshair;}
+#crop-overlay{
+  position:absolute;border:2px solid var(--green);
+  box-shadow:0 0 0 2000px rgba(0,0,0,0.5);
   display:none;
 }
-.ocr-sel-hint.show { display:block; }
-#ocr-sel-box {
-  position:absolute; border:2px dashed var(--accent);
-  background:rgba(0,229,255,0.08); pointer-events:none; display:none;
+/* Resize handles */
+.handle{
+  position:absolute;width:14px;height:14px;
+  background:var(--green);border-radius:2px;cursor:nwse-resize;
+  transform:translate(-50%,-50%);
+}
+.handle.tl{top:0;left:0;cursor:nw-resize;}
+.handle.tr{top:0;right:0;transform:translate(50%,-50%);cursor:ne-resize;}
+.handle.bl{bottom:0;left:0;transform:translate(-50%,50%);cursor:sw-resize;}
+.handle.br{bottom:0;right:0;transform:translate(50%,50%);cursor:se-resize;}
+
+.crop-toolbar{
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:10px 14px;
+  padding-bottom:max(10px,env(safe-area-inset-bottom,10px));
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0;
+}
+.crop-toolbar-label{font-size:11px;color:var(--muted);font-weight:600;margin-right:4px;}
+
+/* ======== EDIT/FILTER PANEL ======== */
+.edit-layout{flex:1;display:flex;overflow:hidden;}
+.edit-preview{
+  flex:1;background:#111;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;position:relative;
+}
+#edit-canvas{max-width:100%;max-height:100%;display:block;}
+.edit-tools{
+  width:200px;background:var(--surface);border-left:1px solid var(--border);
+  overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:14px;flex-shrink:0;
+}
+.ts h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;}
+.filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.fbtn{
+  background:var(--card);border:1px solid var(--border);
+  color:var(--muted);padding:8px 5px;border-radius:8px;
+  cursor:pointer;text-align:center;font-size:11px;font-weight:600;
+  font-family:'Outfit',sans-serif;transition:all 0.15s;
+}
+.fbtn:hover,.fbtn.active{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+.srow{display:flex;flex-direction:column;gap:5px;}
+.slabel{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);}
+.slabel span{color:var(--green);font-family:'JetBrains Mono',monospace;}
+input[type=range]{
+  width:100%;-webkit-appearance:none;
+  height:3px;background:var(--border);border-radius:2px;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:13px;height:13px;border-radius:50%;
+  background:var(--green);cursor:pointer;box-shadow:0 0 5px rgba(0,200,83,0.5);
 }
 
-.ocr-text-side {
-  width:300px; background:var(--surface);
-  border-left:1px solid var(--border);
-  display:flex; flex-direction:column; flex-shrink:0;
+/* Export buttons in edit panel */
+.exp-list{display:flex;flex-direction:column;gap:5px;}
+.expbtn{
+  display:flex;align-items:center;gap:8px;padding:9px 10px;
+  border-radius:9px;border:1px solid var(--border);background:var(--card);
+  cursor:pointer;transition:all 0.15s;width:100%;font-family:'Outfit',sans-serif;
 }
-.ocr-toolbar {
-  padding:10px 12px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-}
-.ocr-lang-sel {
-  background:var(--card); border:1px solid var(--border);
-  color:var(--text); padding:5px 8px; border-radius:7px;
-  font-family:'Outfit',sans-serif; font-size:11px; outline:none; cursor:pointer; flex:1;
-}
-#ocr-text {
-  flex:1; padding:12px; background:transparent; border:none; outline:none;
-  color:var(--text); font-family:'JetBrains Mono',monospace; font-size:12px;
-  line-height:1.7; resize:none;
-}
-.ocr-footer {
-  padding:10px 12px; border-top:1px solid var(--border);
-  display:flex; gap:6px;
-}
-.ocr-btn {
-  flex:1; padding:8px; border-radius:8px; border:1px solid var(--border);
-  background:var(--card); color:var(--text); cursor:pointer;
-  font-family:'Outfit',sans-serif; font-size:11px; font-weight:600;
-  transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:5px;
-}
-.ocr-btn:hover { border-color:var(--green); color:var(--green); }
-.ocr-btn.primary { background:var(--green); color:#000; border-color:var(--green); }
-.ocr-btn.primary:hover { background:var(--green2); }
+.expbtn:hover{border-color:var(--green);background:var(--green-dim);}
+.expbtn-icon{font-size:18px;}
+.expbtn-txt{text-align:left;}
+.expbtn-name{font-size:12px;font-weight:700;color:var(--text);}
+.expbtn-desc{font-size:10px;color:var(--muted);}
 
-/* ===== SIGN PANEL ===== */
-.sign-layout { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-.sign-doc-area {
-  flex:1; background:#111; position:relative;
-  display:flex; align-items:center; justify-content:center; overflow:hidden;
+/* ======== OCR PANEL ======== */
+.ocr-layout{flex:1;display:flex;overflow:hidden;}
+.ocr-img-side{
+  flex:1;background:#111;position:relative;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
-#sign-doc-canvas { max-width:100%; max-height:100%; cursor:crosshair; }
-.sign-toolbar {
-  background:var(--surface); border-top:1px solid var(--border);
-  padding:10px 16px;
-  padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
-  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-  flex-shrink:0;
+#ocr-canvas{max-width:100%;max-height:100%;display:block;cursor:crosshair;}
+#ocr-sel{
+  position:absolute;border:2px dashed var(--accent);
+  background:rgba(0,229,255,0.07);pointer-events:none;display:none;
 }
-.sign-pad-wrap {
-  position:fixed; inset:0; background:rgba(0,0,0,0.85);
-  z-index:1000; display:none;
-  align-items:center; justify-content:center;
+.ocr-hint{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.8);border:1px solid var(--accent);
+  color:var(--accent);font-size:11px;padding:5px 14px;border-radius:20px;
+  backdrop-filter:blur(8px);white-space:nowrap;font-family:'Outfit',sans-serif;
 }
-.sign-pad-wrap.show { display:flex; }
-.sign-pad-box {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:16px; padding:20px; width:420px; max-width:95vw;
+.ocr-text-side{
+  width:280px;background:var(--surface);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;
 }
-.sign-pad-box h3 { font-size:16px; font-weight:700; margin-bottom:12px; }
-#sign-canvas {
-  width:100%; height:160px; background:white; border-radius:8px;
-  cursor:crosshair; display:block;
+.ocr-top{
+  padding:10px;border-bottom:1px solid var(--border);
+  display:flex;gap:7px;align-items:center;
 }
-.sign-pad-actions { display:flex; gap:8px; margin-top:12px; }
+.ocr-lang{
+  flex:1;background:var(--card);border:1px solid var(--border);
+  color:var(--text);padding:6px 8px;border-radius:7px;
+  font-family:'Outfit',sans-serif;font-size:11px;outline:none;cursor:pointer;
+}
+#ocr-text{
+  flex:1;padding:12px;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;
+  line-height:1.7;resize:none;
+}
+.ocr-bot{
+  padding:10px;border-top:1px solid var(--border);display:flex;gap:6px;
+  padding-bottom:max(10px,env(safe-area-inset-bottom,10px));
+}
+.obtn{
+  flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);
+  background:var(--card);color:var(--text);cursor:pointer;
+  font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;
+  transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:4px;
+}
+.obtn:hover{border-color:var(--green);color:var(--green);}
+.obtn.primary{background:var(--green);color:#000;border-color:var(--green);}
+.obtn.primary:hover{background:var(--green2);}
 
-/* Progress bar */
-.progress-overlay {
-  position:fixed; inset:0; background:rgba(0,0,0,0.8);
-  z-index:2000; display:none;
-  align-items:center; justify-content:center;
+/* ======== PAGES PANEL ======== */
+.pages-layout{flex:1;display:flex;overflow:hidden;}
+.pages-grid{
+  flex:1;overflow-y:auto;padding:14px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+  gap:10px;align-content:start;
 }
-.progress-overlay.show { display:flex; }
-.progress-box {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:16px; padding:28px 32px; width:320px; text-align:center;
+.page-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;cursor:pointer;transition:all 0.2s;
 }
-.progress-box h3 { font-size:16px; font-weight:700; margin-bottom:6px; }
-.progress-box p { font-size:12px; color:var(--muted); margin-bottom:16px; }
-.prog-bar { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
-.prog-fill {
-  height:100%; background:linear-gradient(90deg,var(--green),var(--green2));
-  border-radius:3px; width:0%; transition:width 0.3s;
+.page-card:hover{border-color:var(--green);transform:translateY(-2px);}
+.page-card img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;}
+.page-footer{padding:6px 8px;display:flex;align-items:center;justify-content:space-between;}
+.page-num{font-size:11px;font-weight:700;color:var(--muted);}
+.page-del{background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:13px;}
+.page-del:hover{color:var(--red);}
+.pages-empty{
+  grid-column:1/-1;text-align:center;color:var(--muted);
+  padding:60px 20px;
 }
-.prog-pct { font-size:13px; color:var(--green); font-family:'JetBrains Mono',monospace; margin-top:8px; }
+.pages-empty .pe-icon{font-size:44px;opacity:0.2;margin-bottom:12px;}
 
-/* Toast */
-.toast {
-  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px);
-  background:var(--card); border:1px solid var(--border);
-  color:var(--text); padding:10px 18px; border-radius:10px;
-  font-size:13px; font-weight:600; z-index:3000;
-  transition:transform 0.25s; white-space:nowrap;
-  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+.pages-tools{
+  width:190px;background:var(--surface);border-left:1px solid var(--border);
+  padding:14px 12px;display:flex;flex-direction:column;gap:9px;flex-shrink:0;
+  overflow-y:auto;
 }
-.toast.show { transform:translateX(-50%) translateY(0); }
-.toast.ok { border-color:var(--green); color:var(--green); }
-.toast.err { border-color:var(--red); color:var(--red); }
+.pt-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
 
-/* Scrollbar */
-::-webkit-scrollbar { width:4px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+/* ======== SIGN PANEL ======== */
+.sign-layout{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.sign-doc{flex:1;background:#111;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+#sign-canvas{max-width:100%;max-height:100%;display:block;cursor:crosshair;}
+.sign-bar{
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:10px 14px;
+  padding-bottom:max(10px,env(safe-area-inset-bottom,10px));
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0;
+}
 
-/* BOTTOM NAV for mobile */
-.bottom-nav {
-  display: none;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding: 8px 0;
-  padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
-  flex-shrink: 0;
-  z-index: 100;
+/* SIGN PAD modal */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;
+  display:none;align-items:center;justify-content:center;
 }
-.bottom-nav-inner {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
+.modal-bg.open{display:flex;}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:20px;width:400px;max-width:93vw;
 }
-.bnav-btn {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 6px 12px; border-radius: 10px; cursor: pointer;
-  background: transparent; border: none; color: var(--muted);
-  font-family: 'Outfit', sans-serif; min-width: 52px;
-  transition: all 0.15s;
+.modal-box h3{font-size:16px;font-weight:700;margin-bottom:12px;}
+#draw-canvas{
+  width:100%;height:150px;background:white;border-radius:8px;
+  display:block;cursor:crosshair;touch-action:none;
 }
-.bnav-btn .bnav-icon { font-size: 20px; }
-.bnav-btn .bnav-label { font-size: 9px; font-weight: 600; letter-spacing: 0.3px; }
-.bnav-btn.active { color: var(--green); }
-.bnav-btn.active .bnav-icon { filter: drop-shadow(0 0 6px var(--green)); }
+.modal-actions{display:flex;gap:8px;margin-top:12px;}
 
-@media (max-width: 640px) {
-  .sidebar { display: none; }
-  .bottom-nav { display: block; }
-  .edit-tools, .pages-tools { width: 150px; }
-  .ocr-text-side { width: 140px; }
-  .header { padding: 10px 12px; }
-  .hbtn { font-size: 11px; padding: 5px 9px; }
-  .cam-idle h3 { font-size: 16px; }
-  .cam-idle p { font-size: 12px; }
-  .cam-idle-btn { padding: 11px 18px; font-size: 13px; }
+/* PROGRESS */
+.prog-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:2000;
+  display:none;align-items:center;justify-content:center;
+}
+.prog-bg.open{display:flex;}
+.prog-box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:28px 32px;width:300px;text-align:center;
+}
+.prog-box h3{font-size:15px;font-weight:700;margin-bottom:5px;}
+.prog-box p{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.prog-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--green2));width:0%;transition:width 0.3s;}
+.prog-pct{font-size:12px;color:var(--green);font-family:'JetBrains Mono',monospace;margin-top:7px;}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(40px);
+  background:var(--card);border:1px solid var(--border);
+  color:var(--text);padding:10px 18px;border-radius:10px;
+  font-size:13px;font-weight:600;z-index:3000;
+  transition:transform 0.25s;white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,0.5);opacity:0;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.ok{border-color:var(--green);color:var(--green);}
+.toast.err{border-color:var(--red);color:var(--red);}
+
+/* BOTTOM NAV mobile */
+.bnav{
+  display:none;background:var(--surface);border-top:1px solid var(--border);
+  padding:6px 0;padding-bottom:max(6px,env(safe-area-inset-bottom,6px));
+  flex-shrink:0;z-index:100;
+}
+.bnav-inner{display:flex;justify-content:space-around;}
+.bnav-btn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 10px;border-radius:10px;cursor:pointer;
+  background:transparent;border:none;color:var(--muted);
+  font-family:'Outfit',sans-serif;min-width:50px;transition:all 0.15s;
+}
+.bnav-icon{font-size:20px;}
+.bnav-label{font-size:9px;font-weight:600;}
+.bnav-btn.active{color:var(--green);}
+
+/* No image placeholder */
+.no-img{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;color:var(--muted);text-align:center;padding:40px;
+}
+.no-img-icon{font-size:44px;opacity:0.2;}
+.no-img p{font-size:13px;}
+
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+@media(max-width:640px){
+  .sidebar{display:none;}
+  .bnav{display:block;}
+  .edit-tools,.pages-tools{width:150px;}
+  .ocr-text-side{width:140px;}
+  .toast{bottom:72px;}
 }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="logo">
     <div class="logo-icon">📷</div>
     <div class="logo-text">Scan<span>Pro</span></div>
   </div>
-  <div class="header-actions">
-    <button class="hbtn" onclick="addPageFromScan()">➕ Page</button>
-    <button class="hbtn" id="pages-count-btn" onclick="switchPanel('pages')">📄 <span id="page-count">0</span> pages</button>
+  <div class="header-right">
+    <button class="hbtn" onclick="addToPages()">➕ Page</button>
+    <button class="hbtn" onclick="goPanel('pages')">📑 <span id="pg-count">0</span></button>
   </div>
 </div>
 
 <div class="app">
-  <!-- SIDEBAR NAV -->
+  <!-- Desktop sidebar -->
   <div class="sidebar">
-    <button class="nav-btn active" onclick="switchPanel('scan')" id="nav-scan">
-      📷<span>Scan</span>
-    </button>
-    <button class="nav-btn" onclick="switchPanel('edit')" id="nav-edit">
-      ✂️<span>Éditer</span>
-    </button>
-    <button class="nav-btn" onclick="switchPanel('ocr')" id="nav-ocr">
-      🧠<span>OCR</span>
-    </button>
-    <div class="nav-divider"></div>
-    <button class="nav-btn" onclick="switchPanel('pages')" id="nav-pages">
-      📑<span>Pages</span>
-    </button>
-    <button class="nav-btn" onclick="switchPanel('sign')" id="nav-sign">
-      ✍️<span>Signer</span>
-    </button>
+    <button class="nav-btn active" id="nb-scan" onclick="goPanel('scan')">📷<span>Scan</span></button>
+    <button class="nav-btn" id="nb-crop" onclick="goPanel('crop')">✂️<span>Recadrer</span></button>
+    <button class="nav-btn" id="nb-edit" onclick="goPanel('edit')">🎨<span>Filtres</span></button>
+    <button class="nav-btn" id="nb-ocr" onclick="goPanel('ocr')">🧠<span>OCR</span></button>
+    <div class="nav-sep"></div>
+    <button class="nav-btn" id="nb-pages" onclick="goPanel('pages')">📑<span>Pages</span></button>
+    <button class="nav-btn" id="nb-sign" onclick="goPanel('sign')">✍️<span>Signer</span></button>
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
 
-    <!-- ===== SCAN PANEL ===== -->
+    <!-- ===== SCAN ===== -->
     <div class="panel active" id="panel-scan">
-      <div class="scan-workspace">
-        <div class="cam-container" id="cam-container">
-          <div class="cam-idle" id="cam-idle" onclick="handleIdleClick(event)">
-            <div class="cam-idle-icon">📷</div>
-            <h3>Prêt à scanner</h3>
-            <p>Touchez pour activer la caméra ou importez une image</p>
-            <div class="cam-idle-actions">
-              <button class="cam-idle-btn primary" onclick="startCamera();event.stopPropagation()">
-                📷 Activer caméra
-              </button>
-              <button class="cam-idle-btn" onclick="document.getElementById('img-upload').click();event.stopPropagation()">
-                🖼️ Importer image
-              </button>
-            </div>
-          </div>
-          <video id="cam-video" autoplay playsinline></video>
-          <canvas id="cam-canvas" style="display:none"></canvas>
+      <div class="cam-container" id="cam-container" onclick="camContainerClick()">
+        <video id="cam-video" autoplay playsinline></video>
+        <img id="cam-snap" alt="">
+        <canvas id="cam-canvas" style="display:none"></canvas>
 
-          <!-- Detection overlay -->
-          <div class="detect-overlay">
-            <div class="detect-box" id="detect-box">
-              <div class="det-corner tl"></div>
-              <div class="det-corner tr"></div>
-              <div class="det-corner bl"></div>
-              <div class="det-corner br"></div>
-              <div class="detect-label" id="detect-label">Document détecté</div>
-            </div>
+        <!-- Idle -->
+        <div class="cam-idle" id="cam-idle">
+          <div class="cam-idle-icon">📷</div>
+          <div class="cam-idle-title">Prêt à scanner</div>
+          <div class="cam-idle-sub">Touchez pour activer la caméra ou importez une photo</div>
+          <div class="cam-idle-btns">
+            <button class="cam-idle-btn primary" onclick="startCam();event.stopPropagation()">📷 Caméra</button>
+            <button class="cam-idle-btn" onclick="triggerUpload();event.stopPropagation()">🖼️ Importer</button>
           </div>
-          <div class="scan-anim" id="scan-anim"></div>
-          <div class="doc-type-badge" id="doc-badge">📄 Document A4</div>
         </div>
 
-        <div class="cam-controls">
-          <div class="cam-left">
-            <button class="ctrl-btn" onclick="startCamera()">📷 Caméra</button>
-            <button class="ctrl-btn" onclick="document.getElementById('img-upload').click()">🖼️ Importer</button>
-            <input type="file" id="img-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
-          </div>
-          <button class="ctrl-btn primary" id="btn-capture" onclick="captureAndProcess()" disabled>
-            ⚡ Capturer
-          </button>
-          <div class="cam-right">
-            <button class="ctrl-btn" onclick="toggleFlash()" id="btn-flash">🔦 Flash</button>
-            <button class="ctrl-btn" onclick="switchCamera()">🔄 Flip</button>
-          </div>
+        <!-- Detection overlay -->
+        <svg id="detect-svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="display:none;position:absolute;inset:0;width:100%;height:100%;">
+          <rect id="det-rect" x="10" y="10" width="80" height="80" fill="none" stroke="#00c853" stroke-width="0.5" stroke-dasharray="3,2"/>
+          <circle id="det-tl" cx="10" cy="10" r="1.5" fill="#00c853"/>
+          <circle id="det-tr" cx="90" cy="10" r="1.5" fill="#00c853"/>
+          <circle id="det-bl" cx="10" cy="90" r="1.5" fill="#00c853"/>
+          <circle id="det-br" cx="90" cy="90" r="1.5" fill="#00c853"/>
+        </svg>
+        <div class="doc-badge" id="doc-badge"></div>
+        <div class="scan-line" id="scan-line"></div>
+      </div>
+      <input type="file" id="file-input" accept="image/*" style="display:none" onchange="loadFile(event)">
+
+      <div class="cam-controls">
+        <div class="cam-left">
+          <button class="cbtn" onclick="startCam()">📷 Caméra</button>
+          <button class="cbtn" onclick="triggerUpload()">🖼️ Import</button>
+        </div>
+        <button class="cbtn primary" id="btn-capture" onclick="doCapture()" disabled>⚡ Capturer</button>
+        <div class="cam-right">
+          <button class="cbtn" onclick="flipCam()">🔄</button>
         </div>
       </div>
     </div>
 
-    <!-- ===== EDIT PANEL ===== -->
+    <!-- ===== CROP ===== -->
+    <div class="panel" id="panel-crop">
+      <div class="crop-wrap" id="crop-wrap">
+        <div class="no-img" id="crop-noimg">
+          <div class="no-img-icon">✂️</div>
+          <p>Scannez d'abord une image</p>
+        </div>
+        <canvas id="crop-canvas"></canvas>
+        <div id="crop-overlay">
+          <div class="handle tl" id="h-tl"></div>
+          <div class="handle tr" id="h-tr"></div>
+          <div class="handle bl" id="h-bl"></div>
+          <div class="handle br" id="h-br"></div>
+        </div>
+      </div>
+
+      <div class="crop-toolbar">
+        <span class="crop-toolbar-label">Format :</span>
+        <button class="cbtn" onclick="setCropPreset('free')">Libre</button>
+        <button class="cbtn" onclick="setCropPreset('a4')">A4</button>
+        <button class="cbtn" onclick="setCropPreset('id')">CNI</button>
+        <button class="cbtn" onclick="setCropPreset('passport')">Passeport</button>
+        <button class="cbtn" onclick="setCropPreset('photo4x4')">4×4</button>
+        <button class="cbtn" onclick="setCropPreset('visa')">Visa</button>
+        <button class="cbtn primary" onclick="applyCrop()">✅ Recadrer</button>
+      </div>
+    </div>
+
+    <!-- ===== EDIT/FILTERS ===== -->
     <div class="panel" id="panel-edit">
       <div class="edit-layout">
-        <div class="edit-canvas-wrap" id="edit-canvas-wrap">
-          <div class="edit-canvas-empty" id="edit-empty">
-            <div class="e-icon">✂️</div>
-            <p style="font-size:13px;color:var(--muted)">Scannez d'abord une image</p>
+        <div class="edit-preview">
+          <div class="no-img" id="edit-noimg">
+            <div class="no-img-icon">🎨</div>
+            <p>Scannez d'abord une image</p>
           </div>
           <canvas id="edit-canvas"></canvas>
-          <div id="sel-overlay"></div>
         </div>
-
         <div class="edit-tools">
-          <!-- Filters -->
-          <div class="tool-section">
+          <div class="ts">
             <h4>🎨 Filtres</h4>
             <div class="filter-grid">
-              <button class="filter-btn active" onclick="applyFilter('original',this)">Original</button>
-              <button class="filter-btn" onclick="applyFilter('bw',this)">N&B</button>
-              <button class="filter-btn" onclick="applyFilter('enhance',this)">Amélioré</button>
-              <button class="filter-btn" onclick="applyFilter('gray',this)">Gris</button>
-              <button class="filter-btn" onclick="applyFilter('sharp',this)">Net</button>
-              <button class="filter-btn" onclick="applyFilter('magic',this)">✨ Magic</button>
+              <button class="fbtn active" onclick="setFilter('orig',this)">Original</button>
+              <button class="fbtn" onclick="setFilter('bw',this)">N&B</button>
+              <button class="fbtn" onclick="setFilter('enhance',this)">✨ Magic</button>
+              <button class="fbtn" onclick="setFilter('gray',this)">Gris</button>
+              <button class="fbtn" onclick="setFilter('sharp',this)">Net</button>
+              <button class="fbtn" onclick="setFilter('warm',this)">Chaud</button>
             </div>
           </div>
 
-          <!-- Adjustments -->
-          <div class="tool-section">
+          <div class="ts">
             <h4>⚙️ Réglages</h4>
             <div style="display:flex;flex-direction:column;gap:10px;">
-              <div class="slider-row">
-                <div class="slider-label">Luminosité <span id="v-bright">0</span></div>
-                <input type="range" min="-100" max="100" value="0" oninput="adjustImage('brightness',this.value);document.getElementById('v-bright').textContent=this.value">
+              <div class="srow">
+                <div class="slabel">Luminosité <span id="vb">0</span></div>
+                <input type="range" min="-100" max="100" value="0" oninput="adj('br',this.value,'vb')">
               </div>
-              <div class="slider-row">
-                <div class="slider-label">Contraste <span id="v-contrast">0</span></div>
-                <input type="range" min="-100" max="100" value="0" oninput="adjustImage('contrast',this.value);document.getElementById('v-contrast').textContent=this.value">
+              <div class="srow">
+                <div class="slabel">Contraste <span id="vc">0</span></div>
+                <input type="range" min="-100" max="100" value="0" oninput="adj('co',this.value,'vc')">
               </div>
-              <div class="slider-row">
-                <div class="slider-label">Netteté <span id="v-sharp">0</span></div>
-                <input type="range" min="0" max="10" value="0" oninput="adjustImage('sharpen',this.value);document.getElementById('v-sharp').textContent=this.value">
-              </div>
-              <div class="slider-row">
-                <div class="slider-label">Rotation <span id="v-rot">0°</span></div>
-                <input type="range" min="-180" max="180" value="0" oninput="adjustImage('rotate',this.value);document.getElementById('v-rot').textContent=this.value+'°'">
+              <div class="srow">
+                <div class="slabel">Rotation <span id="vr">0°</span></div>
+                <input type="range" min="-180" max="180" value="0" oninput="adj('ro',this.value+'°','vr',parseFloat(this.value));renderEdit()">
               </div>
             </div>
           </div>
 
-          <!-- Recadrage -->
-          <div class="tool-section">
-            <h4>📐 Recadrer / Format</h4>
-            <div class="preset-list">
-              <div class="preset-item active" onclick="setPreset('free',this)">
-                <span>🆓 Libre</span><span class="preset-size">—</span>
-              </div>
-              <div class="preset-item" onclick="setPreset('a4',this)">
-                <span>📄 A4</span><span class="preset-size">210×297</span>
-              </div>
-              <div class="preset-item" onclick="setPreset('a3',this)">
-                <span>📋 A3</span><span class="preset-size">297×420</span>
-              </div>
-              <div class="preset-item" onclick="setPreset('letter',this)">
-                <span>📃 Letter</span><span class="preset-size">216×279</span>
-              </div>
-              <div class="preset-item" onclick="setPreset('id',this)">
-                <span>🪪 CNI/ID</span><span class="preset-size">85×54</span>
-              </div>
-              <div class="preset-item" onclick="setPreset('passport',this)">
-                <span>📘 Passeport</span><span class="preset-size">125×88</span>
-              </div>
-              <div class="preset-item" onclick="setPreset('photo4x4',this)">
-                <span>🖼️ Photo 4×4</span><span class="preset-size">40×40mm</span>
-              </div>
-              <div class="preset-item" onclick="setPreset('visa',this)">
-                <span>🛂 Visa</span><span class="preset-size">35×45</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sélection OCR -->
-          <div class="tool-section">
-            <h4>🎯 Sélection texte</h4>
-            <div class="sel-mode-info" id="sel-info">
-              Cliquez et glissez sur l'image pour sélectionner une zone de texte
-            </div>
-            <button class="filter-btn" style="width:100%;margin-top:6px" onclick="toggleSelMode()">
-              🎯 Mode sélection
-            </button>
-            <button class="filter-btn" style="width:100%;margin-top:6px" onclick="ocrSelectedZone()">
-              🧠 OCR zone sélectionnée
-            </button>
-          </div>
-
-          <!-- Actions -->
-          <div class="tool-section">
-            <h4>💾 Sauvegarder</h4>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <button class="ctrl-btn" style="width:100%;justify-content:center" onclick="addCurrentToPages()">➕ Ajouter aux pages</button>
-              <button class="ctrl-btn" style="width:100%;justify-content:center" onclick="downloadEditedImage('png')">⬇️ PNG</button>
-              <button class="ctrl-btn" style="width:100%;justify-content:center" onclick="downloadEditedImage('jpeg')">⬇️ JPEG</button>
+          <div class="ts">
+            <h4>💾 Exporter</h4>
+            <div class="exp-list">
+              <button class="expbtn" onclick="exportImg('pdf')">
+                <span class="expbtn-icon">📄</span>
+                <div class="expbtn-txt"><div class="expbtn-name">PDF</div><div class="expbtn-desc">Document</div></div>
+              </button>
+              <button class="expbtn" onclick="exportImg('png')">
+                <span class="expbtn-icon">🖼️</span>
+                <div class="expbtn-txt"><div class="expbtn-name">PNG</div><div class="expbtn-desc">Haute qualité</div></div>
+              </button>
+              <button class="expbtn" onclick="exportImg('jpeg')">
+                <span class="expbtn-icon">📸</span>
+                <div class="expbtn-txt"><div class="expbtn-name">JPEG</div><div class="expbtn-desc">Compressé</div></div>
+              </button>
+              <button class="expbtn" onclick="addToPages()">
+                <span class="expbtn-icon">➕</span>
+                <div class="expbtn-txt"><div class="expbtn-name">Ajouter</div><div class="expbtn-desc">Aux pages</div></div>
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ===== OCR PANEL ===== -->
+    <!-- ===== OCR ===== -->
     <div class="panel" id="panel-ocr">
       <div class="ocr-layout">
-        <div class="ocr-image-side">
-          <div style="color:var(--muted);text-align:center" id="ocr-empty">
-            <div style="font-size:48px;opacity:0.2;margin-bottom:12px">🧠</div>
-            <p style="font-size:13px">Scannez d'abord une image</p>
+        <div class="ocr-img-side" id="ocr-img-side">
+          <div class="no-img" id="ocr-noimg">
+            <div class="no-img-icon">🧠</div>
+            <p>Scannez d'abord une image</p>
           </div>
           <canvas id="ocr-canvas"></canvas>
-          <div id="ocr-sel-box"></div>
-          <div class="ocr-sel-hint show" id="ocr-hint">✦ Glissez pour sélectionner une zone · ou OCR complet</div>
+          <div id="ocr-sel"></div>
+          <div class="ocr-hint" id="ocr-hint" style="display:none">✦ Glissez pour sélectionner · ou OCR complet</div>
         </div>
         <div class="ocr-text-side">
-          <div class="ocr-toolbar">
-            <select class="ocr-lang-sel" id="ocr-lang">
+          <div class="ocr-top">
+            <select class="ocr-lang" id="ocr-lang">
               <option value="fra">🇫🇷 Français</option>
               <option value="eng">🇬🇧 English</option>
               <option value="ara">🇸🇦 Arabe</option>
@@ -749,87 +583,71 @@ input[type=range]::-webkit-slider-thumb {
               <option value="spa">🇪🇸 Español</option>
             </select>
           </div>
-          <textarea id="ocr-text" placeholder="Le texte extrait apparaîtra ici...&#10;&#10;💡 Conseil : sélectionnez une zone précise pour plus de précision."></textarea>
-          <div class="ocr-footer">
-            <button class="ocr-btn primary" onclick="runOCRFull()">🧠 OCR complet</button>
-            <button class="ocr-btn" onclick="copyOCR()">📋 Copier</button>
-            <button class="ocr-btn" onclick="exportOCRtxt()">⬇️ .txt</button>
+          <textarea id="ocr-text" placeholder="Texte extrait ici...&#10;&#10;💡 Sélectionnez une zone précise ou lancez l'OCR complet."></textarea>
+          <div class="ocr-bot">
+            <button class="obtn primary" onclick="ocrFull()">🧠 OCR</button>
+            <button class="obtn" onclick="copyOcr()">📋</button>
+            <button class="obtn" onclick="exportOcrTxt()">⬇️ .txt</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ===== PAGES PANEL ===== -->
+    <!-- ===== PAGES ===== -->
     <div class="panel" id="panel-pages">
       <div class="pages-layout">
-        <div class="pages-list" id="pages-list">
+        <div class="pages-grid" id="pages-grid">
           <div class="pages-empty" id="pages-empty">
             <div class="pe-icon">📑</div>
-            <p style="font-size:13px">Aucune page encore.<br>Scannez des documents pour commencer.</p>
+            <p style="font-size:13px">Aucune page.<br>Ajoutez des scans ici.</p>
           </div>
         </div>
         <div class="pages-tools">
-          <h4>📤 Exporter tout</h4>
-          <button class="export-btn" onclick="exportAllPDF()">
-            <span class="export-btn-icon">📄</span>
-            <div class="export-btn-info">
-              <div class="export-btn-name">PDF</div>
-              <div class="export-btn-desc">Multi-pages</div>
-            </div>
+          <div class="pt-title">📤 Exporter tout</div>
+          <button class="expbtn" onclick="exportAll('pdf')">
+            <span class="expbtn-icon">📄</span>
+            <div class="expbtn-txt"><div class="expbtn-name">PDF</div><div class="expbtn-desc">Multi-pages</div></div>
           </button>
-          <button class="export-btn" onclick="exportAllWord()">
-            <span class="export-btn-icon">📝</span>
-            <div class="export-btn-info">
-              <div class="export-btn-name">Word</div>
-              <div class="export-btn-desc">.docx éditable</div>
-            </div>
+          <button class="expbtn" onclick="exportAll('word')">
+            <span class="expbtn-icon">📝</span>
+            <div class="expbtn-txt"><div class="expbtn-name">Word</div><div class="expbtn-desc">.docx</div></div>
           </button>
-          <button class="export-btn" onclick="exportAllImages('png')">
-            <span class="export-btn-icon">🖼️</span>
-            <div class="export-btn-info">
-              <div class="export-btn-name">PNG</div>
-              <div class="export-btn-desc">Images séparées</div>
-            </div>
+          <button class="expbtn" onclick="exportAll('png')">
+            <span class="expbtn-icon">🖼️</span>
+            <div class="expbtn-txt"><div class="expbtn-name">PNG</div><div class="expbtn-desc">Images</div></div>
           </button>
-          <button class="export-btn" onclick="exportAllImages('jpeg')">
-            <span class="export-btn-icon">📸</span>
-            <div class="export-btn-info">
-              <div class="export-btn-name">JPEG</div>
-              <div class="export-btn-desc">Compressé</div>
-            </div>
+          <button class="expbtn" onclick="exportAll('jpeg')">
+            <span class="expbtn-icon">📸</span>
+            <div class="expbtn-txt"><div class="expbtn-name">JPEG</div><div class="expbtn-desc">Compressé</div></div>
           </button>
-
-          <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-          <h4>⚙️ Options PDF</h4>
-          <div class="preset-list">
-            <div class="preset-item active" onclick="setPdfSize('a4',this)">A4</div>
-            <div class="preset-item" onclick="setPdfSize('a3',this)">A3</div>
-            <div class="preset-item" onclick="setPdfSize('letter',this)">Letter</div>
+          <div style="height:1px;background:var(--border);"></div>
+          <div class="pt-title">⚙️ Format PDF</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <button class="cbtn active-pdf" onclick="pdfFmt='a4';toast('Format A4','ok')">A4</button>
+            <button class="cbtn" onclick="pdfFmt='a3';toast('Format A3','ok')">A3</button>
+            <button class="cbtn" onclick="pdfFmt='letter';toast('Letter','ok')">Letter</button>
           </div>
-
-          <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-          <button class="ctrl-btn" style="width:100%;justify-content:center;color:var(--red);border-color:var(--red)" onclick="clearAllPages()">
-            🗑️ Tout effacer
-          </button>
+          <div style="height:1px;background:var(--border);"></div>
+          <button class="cbtn" style="width:100%;justify-content:center;color:var(--red);border-color:var(--red)" onclick="clearPages()">🗑️ Tout effacer</button>
         </div>
       </div>
     </div>
 
-    <!-- ===== SIGN PANEL ===== -->
+    <!-- ===== SIGN ===== -->
     <div class="panel" id="panel-sign">
       <div class="sign-layout">
-        <div class="sign-doc-area">
-          <div style="color:var(--muted);text-align:center" id="sign-empty">
-            <div style="font-size:48px;opacity:0.2;margin-bottom:12px">✍️</div>
-            <p style="font-size:13px">Chargez un document à signer</p>
+        <div class="sign-doc">
+          <div class="no-img" id="sign-noimg">
+            <div class="no-img-icon">✍️</div>
+            <p>Chargez un document à signer</p>
           </div>
-          <canvas id="sign-doc-canvas"></canvas>
+          <canvas id="sign-canvas"></canvas>
         </div>
-        <div class="sign-toolbar">
-          <button class="ctrl-btn" onclick="loadDocForSign()">📂 Charger doc</button>
-          <button class="ctrl-btn primary" onclick="openSignPad()">✍️ Créer signature</button>
-          <button class="ctrl-btn" id="btn-place-sign" onclick="placeSignature()" disabled>📌 Placer</button>
-          <button class="ctrl-btn" onclick="downloadSignedDoc()">⬇️ Télécharger PDF</button>
+        <div class="sign-bar">
+          <button class="cbtn" onclick="loadSignDoc()">📂 Charger</button>
+          <button class="cbtn primary" onclick="openSignPad()">✍️ Signature</button>
+          <button class="cbtn" id="btn-place" onclick="placeSign()" disabled>📌 Placer</button>
+          <button class="cbtn" onclick="downloadSigned()">⬇️ PDF</button>
         </div>
       </div>
     </div>
@@ -837,743 +655,714 @@ input[type=range]::-webkit-slider-thumb {
   </div><!-- /content -->
 </div><!-- /app -->
 
-<!-- BOTTOM NAV (mobile) -->
-<div class="bottom-nav" id="bottom-nav">
-  <div class="bottom-nav-inner">
-    <button class="bnav-btn active" id="bnav-scan" onclick="switchPanel('scan')">
-      <span class="bnav-icon">📷</span>
-      <span class="bnav-label">Scan</span>
-    </button>
-    <button class="bnav-btn" id="bnav-edit" onclick="switchPanel('edit')">
-      <span class="bnav-icon">✂️</span>
-      <span class="bnav-label">Éditer</span>
-    </button>
-    <button class="bnav-btn" id="bnav-ocr" onclick="switchPanel('ocr')">
-      <span class="bnav-icon">🧠</span>
-      <span class="bnav-label">OCR</span>
-    </button>
-    <button class="bnav-btn" id="bnav-pages" onclick="switchPanel('pages')">
-      <span class="bnav-icon">📑</span>
-      <span class="bnav-label">Pages</span>
-    </button>
-    <button class="bnav-btn" id="bnav-sign" onclick="switchPanel('sign')">
-      <span class="bnav-icon">✍️</span>
-      <span class="bnav-label">Signer</span>
-    </button>
+<!-- BOTTOM NAV mobile -->
+<div class="bnav">
+  <div class="bnav-inner">
+    <button class="bnav-btn active" id="bn-scan" onclick="goPanel('scan')"><span class="bnav-icon">📷</span><span class="bnav-label">Scan</span></button>
+    <button class="bnav-btn" id="bn-crop" onclick="goPanel('crop')"><span class="bnav-icon">✂️</span><span class="bnav-label">Recadrer</span></button>
+    <button class="bnav-btn" id="bn-edit" onclick="goPanel('edit')"><span class="bnav-icon">🎨</span><span class="bnav-label">Filtres</span></button>
+    <button class="bnav-btn" id="bn-ocr" onclick="goPanel('ocr')"><span class="bnav-icon">🧠</span><span class="bnav-label">OCR</span></button>
+    <button class="bnav-btn" id="bn-pages" onclick="goPanel('pages')"><span class="bnav-icon">📑</span><span class="bnav-label">Pages</span></button>
+    <button class="bnav-btn" id="bn-sign" onclick="goPanel('sign')"><span class="bnav-icon">✍️</span><span class="bnav-label">Signer</span></button>
   </div>
 </div>
 
-<!-- SIGNATURE PAD -->
-<div class="sign-pad-wrap" id="sign-pad-wrap">
-  <div class="sign-pad-box">
-    <h3>✍️ Votre signature</h3>
-    <canvas id="sign-canvas" width="380" height="160"></canvas>
-    <div class="sign-pad-actions">
-      <button class="ctrl-btn" style="flex:1" onclick="clearSignPad()">🗑️ Effacer</button>
-      <button class="ctrl-btn primary" style="flex:2" onclick="saveSignature()">✅ Utiliser</button>
-      <button class="ctrl-btn" style="flex:1" onclick="closeSignPad()">✕ Annuler</button>
+<!-- SIGN PAD -->
+<div class="modal-bg" id="sign-modal">
+  <div class="modal-box">
+    <h3>✍️ Dessinez votre signature</h3>
+    <canvas id="draw-canvas" width="360" height="150"></canvas>
+    <div class="modal-actions">
+      <button class="cbtn" style="flex:1" onclick="clearDraw()">🗑️ Effacer</button>
+      <button class="cbtn primary" style="flex:2" onclick="saveSign()">✅ Utiliser</button>
+      <button class="cbtn" style="flex:1" onclick="closeSign()">✕</button>
     </div>
   </div>
 </div>
 
-<!-- PROGRESS OVERLAY -->
-<div class="progress-overlay" id="prog-overlay">
-  <div class="progress-box">
-    <h3 id="prog-title">Traitement en cours...</h3>
+<!-- PROGRESS -->
+<div class="prog-bg" id="prog-bg">
+  <div class="prog-box">
+    <h3 id="prog-title">Traitement...</h3>
     <p id="prog-sub">Veuillez patienter</p>
     <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
     <div class="prog-pct" id="prog-pct">0%</div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ============================================================
-// STATE
-// ============================================================
-let camStream = null;
-let facingMode = 'environment';
-let currentImageData = null; // ImageData of current scan
-let currentImg = null; // HTMLImageElement
-let pages = []; // Array of dataURLs
-let currentFilter = 'original';
-let currentPreset = 'free';
-let pdfSize = 'a4';
-let selMode = false;
-let selStart = null;
-let selRect = null;
-let signatureImg = null;
-let signPainting = false;
-let signCtx = null;
-let ocrSelecting = false;
-let ocrSelStart = null;
-let ocrSelRect = null;
-let adjustments = { brightness:0, contrast:0, sharpen:0, rotate:0 };
+// ─── STATE ───────────────────────────────────────────────
+let camStream=null, facingMode='environment';
+let sourceImg=null;       // original HTMLImageElement
+let workingCanvas=null;   // after crop & filter
+let pages=[];
+let pdfFmt='a4';
+let activeFilter='orig';
+let adjBr=0, adjCo=0, adjRo=0;
+let signImg=null;
+let drawPainting=false, drawCtx=null;
+let cropRect=null;        // {x,y,w,h} in canvas coords
+let cropDragging=null;
+let ocrSelecting=false, ocrStart=null, ocrRect=null;
 
-// ============================================================
-// NAV
-// ============================================================
-function switchPanel(name) {
+// ─── NAVIGATION ───────────────────────────────────────────
+function goPanel(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  ['nb-','bn-'].forEach(pre=>{
+    const el=document.getElementById(pre+name);
+    document.querySelectorAll('[id^="'+pre+'"]').forEach(b=>b.classList.remove('active'));
+    if(el) el.classList.add('active');
+  });
   document.getElementById('panel-'+name).classList.add('active');
-  const nb = document.getElementById('nav-'+name);
-  if(nb) nb.classList.add('active');
-  const bnb = document.getElementById('bnav-'+name);
-  if(bnb) bnb.classList.add('active');
-  if(name==='edit' && currentImg) renderEditCanvas();
-  if(name==='ocr' && currentImg) renderOCRCanvas();
-  if(name==='sign' && currentImg) renderSignCanvas();
+  if(name==='crop') initCropPanel();
+  if(name==='edit') initEditPanel();
+  if(name==='ocr') initOcrPanel();
+  if(name==='sign') initSignPanel();
 }
 
-function handleIdleClick(e) {
-  // Only trigger if clicking the idle area itself, not its children
-  if(e.target === document.getElementById('cam-idle') ||
-     e.target.classList.contains('cam-idle-icon') ||
-     e.target.tagName === 'H3' ||
-     e.target.tagName === 'P') {
-    startCamera();
-  }
-}
-
-// ============================================================
-// CAMERA
-// ============================================================
-async function startCamera() {
-  try {
-    if(camStream) { camStream.getTracks().forEach(t=>t.stop()); }
-    camStream = await navigator.mediaDevices.getUserMedia({
-      video:{ facingMode, width:{ideal:1920}, height:{ideal:1080} }
+// ─── CAMERA ───────────────────────────────────────────────
+async function startCam(){
+  try{
+    if(camStream) camStream.getTracks().forEach(t=>t.stop());
+    camStream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode,width:{ideal:1920},height:{ideal:1080}}
     });
-    const v = document.getElementById('cam-video');
-    v.srcObject = camStream;
-    v.style.display = 'block';
-    document.getElementById('cam-idle').style.display = 'none';
-    document.getElementById('btn-capture').disabled = false;
-    document.getElementById('scan-anim').classList.add('active');
-    startDetection();
+    const v=document.getElementById('cam-video');
+    v.srcObject=camStream; v.style.display='block';
+    document.getElementById('cam-idle').style.display='none';
+    document.getElementById('cam-snap').style.display='none';
+    document.getElementById('btn-capture').disabled=false;
+    document.getElementById('detect-svg').style.display='block';
+    document.getElementById('scan-line').classList.add('on');
+    startDocDetection();
     toast('📷 Caméra activée','ok');
-  } catch(e) {
-    toast('❌ Caméra refusée — vérifiez les permissions','err');
+  }catch(e){ toast('❌ Caméra refusée — vérifiez les permissions','err'); }
+}
+
+function flipCam(){ facingMode=facingMode==='environment'?'user':'environment'; if(camStream) startCam(); }
+function triggerUpload(){ document.getElementById('file-input').click(); }
+function camContainerClick(){
+  if(!camStream && !sourceImg) startCam();
+}
+
+// ─── REAL document edge detection via pixel analysis ──────
+let detTimer=null;
+function startDocDetection(){
+  if(detTimer) clearInterval(detTimer);
+  detTimer=setInterval(detectDocumentEdge, 800);
+}
+
+function detectDocumentEdge(){
+  const video=document.getElementById('cam-video');
+  if(!video.videoWidth) return;
+
+  // Sample the video onto a small canvas for analysis
+  const sw=160, sh=Math.round(160*video.videoHeight/video.videoWidth);
+  const sc=document.createElement('canvas');
+  sc.width=sw; sc.height=sh;
+  const sctx=sc.getContext('2d');
+  sctx.drawImage(video,0,0,sw,sh);
+  const data=sctx.getImageData(0,0,sw,sh).data;
+
+  // Find bounding box of "document" by looking for high contrast area
+  // Convert to grayscale, find edges via simple Sobel
+  const gray=new Uint8Array(sw*sh);
+  for(let i=0;i<sw*sh;i++){
+    gray[i]=0.299*data[i*4]+0.587*data[i*4+1]+0.114*data[i*4+2];
   }
-}
 
-function switchCamera() {
-  facingMode = facingMode==='environment' ? 'user' : 'environment';
-  if(camStream) startCamera();
-}
-
-function toggleFlash() { toast('💡 Flash non disponible sur navigateur',''); }
-
-// Document detection simulation (real detection requires OpenCV/WASM)
-let detectionInterval = null;
-function startDetection() {
-  if(detectionInterval) clearInterval(detectionInterval);
-  detectionInterval = setInterval(() => {
-    const v = document.getElementById('cam-video');
-    if(!v || !v.videoWidth) return;
-    // Simulate detection with random slight variation for realism
-    const vw = v.offsetWidth, vh = v.offsetHeight;
-    const margin = 0.08 + Math.random()*0.02;
-    const box = document.getElementById('detect-box');
-    const badge = document.getElementById('doc-badge');
-    const label = document.getElementById('detect-label');
-
-    // Detect document type based on aspect ratio simulation
-    const types = [
-      {name:'Document A4', label:'📄 A4', ratio:0.707},
-      {name:'CNI / Carte ID', label:'🪪 CNI', ratio:1.586},
-      {name:'Passeport', label:'📘 Passeport', ratio:1.42},
-      {name:'Photo 4×4', label:'🖼️ 4×4', ratio:1.0},
-      {name:'Reçu', label:'🧾 Reçu', ratio:0.5},
-    ];
-    const t = types[Math.floor(Math.random()*types.length)];
-
-    const bx = vw*margin, by = vh*margin;
-    const bw = vw*(1-margin*2), bh = vh*(1-margin*2);
-
-    box.style.left = bx+'px'; box.style.top = by+'px';
-    box.style.width = bw+'px'; box.style.height = bh+'px';
-    box.classList.add('show');
-    label.textContent = t.label;
-    badge.textContent = t.label+' — '+t.name;
-    badge.classList.add('show');
-  }, 1800);
-}
-
-// ============================================================
-// CAPTURE
-// ============================================================
-function captureAndProcess() {
-  const v = document.getElementById('cam-video');
-  if(!v.srcObject && !currentImg) { toast('📷 Activez la caméra d\'abord','err'); return; }
-
-  const canvas = document.getElementById('cam-canvas');
-  if(v.srcObject) {
-    canvas.width = v.videoWidth;
-    canvas.height = v.videoHeight;
-    canvas.getContext('2d').drawImage(v,0,0);
+  // Simple edge scan: find rows/cols with most variance
+  let minX=sw,maxX=0,minY=sh,maxY=0;
+  let found=false;
+  for(let y=1;y<sh-1;y++){
+    for(let x=1;x<sw-1;x++){
+      const gx=Math.abs(gray[y*sw+x+1]-gray[y*sw+x-1]);
+      const gy=Math.abs(gray[(y+1)*sw+x]-gray[(y-1)*sw+x]);
+      if(gx+gy>40){
+        if(x<minX) minX=x; if(x>maxX) maxX=x;
+        if(y<minY) minY=y; if(y>maxY) maxY=y;
+        found=true;
+      }
+    }
   }
+
+  if(!found||maxX-minX<sw*0.2||maxY-minY<sh*0.2){
+    document.getElementById('doc-badge').classList.remove('show');
+    return;
+  }
+
+  // Convert to percent for SVG viewBox 0-100
+  const px=minX/sw*100, py=minY/sh*100;
+  const pw=(maxX-minX)/sw*100, ph=(maxY-minY)/sh*100;
+
+  const r=document.getElementById('det-rect');
+  r.setAttribute('x',px); r.setAttribute('y',py);
+  r.setAttribute('width',pw); r.setAttribute('height',ph);
+  document.getElementById('det-tl').setAttribute('cx',px);
+  document.getElementById('det-tl').setAttribute('cy',py);
+  document.getElementById('det-tr').setAttribute('cx',px+pw);
+  document.getElementById('det-tr').setAttribute('cy',py);
+  document.getElementById('det-bl').setAttribute('cx',px);
+  document.getElementById('det-bl').setAttribute('cy',py+ph);
+  document.getElementById('det-br').setAttribute('cx',px+pw);
+  document.getElementById('det-br').setAttribute('cy',py+ph);
+
+  // Detect document type from aspect ratio
+  const ratio=pw/ph;
+  let label='📄 Document';
+  if(ratio>1.4&&ratio<1.7) label='🪪 CNI / Carte ID';
+  else if(ratio>0.9&&ratio<1.1) label='🖼️ Photo 4×4';
+  else if(ratio>0.65&&ratio<0.75) label='📄 Format A4';
+  else if(ratio>1.3&&ratio<1.5) label='📘 Passeport';
+  else if(ratio>0.45&&ratio<0.6) label='🧾 Reçu';
+  else if(ratio>0.7&&ratio<0.9) label='📃 Document';
+
+  const badge=document.getElementById('doc-badge');
+  badge.textContent=label;
+  badge.classList.add('show');
+}
+
+// ─── CAPTURE ──────────────────────────────────────────────
+function doCapture(){
+  const video=document.getElementById('cam-video');
+  const canvas=document.getElementById('cam-canvas');
+  canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+  canvas.getContext('2d').drawImage(video,0,0);
 
   // Stop detection
-  clearInterval(detectionInterval);
-  document.getElementById('scan-anim').classList.remove('active');
-  document.getElementById('detect-box').classList.remove('show');
+  clearInterval(detTimer);
+  document.getElementById('scan-line').classList.remove('on');
+  document.getElementById('detect-svg').style.display='none';
   document.getElementById('doc-badge').classList.remove('show');
 
-  const dataURL = canvas.toDataURL('image/jpeg',0.92);
-  loadImageFromURL(dataURL);
-  toast('✅ Image capturée — édition disponible','ok');
-  switchPanel('edit');
+  // Show snap
+  const snap=document.getElementById('cam-snap');
+  snap.src=canvas.toDataURL('image/jpeg',0.95);
+  snap.style.display='block';
+  document.getElementById('cam-video').style.display='none';
+
+  loadImageFromURL(snap.src);
+  toast('✅ Capturé — allez dans Recadrer ou Filtres','ok');
 }
 
-function loadImage(e) {
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    loadImageFromURL(ev.target.result);
-    toast('🖼️ Image importée','ok');
-    switchPanel('edit');
-  };
+function loadFile(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{ loadImageFromURL(ev.target.result); toast('🖼️ Image chargée','ok'); };
   reader.readAsDataURL(file);
+  e.target.value='';
 }
 
-function loadImageFromURL(dataURL) {
-  const img = new Image();
-  img.onload = () => {
-    currentImg = img;
-    // Reset adjustments
-    adjustments = {brightness:0,contrast:0,sharpen:0,rotate:0};
-    document.querySelectorAll('input[type=range]').forEach(r=>r.value=0);
-    document.getElementById('v-bright').textContent='0';
-    document.getElementById('v-contrast').textContent='0';
-    document.getElementById('v-sharp').textContent='0';
-    document.getElementById('v-rot').textContent='0°';
-    document.getElementById('edit-empty').style.display='none';
-    document.getElementById('ocr-empty').style.display='none';
-    document.getElementById('sign-empty').style.display='none';
-    renderEditCanvas();
+function loadImageFromURL(url){
+  const img=new Image();
+  img.onload=()=>{
+    sourceImg=img;
+    workingCanvas=imgToCanvas(img);
+    document.getElementById('cam-idle').style.display='none';
+    document.getElementById('btn-capture').disabled=false;
+    // If already on another panel, refresh
+    const active=document.querySelector('.panel.active');
+    if(active&&active.id==='panel-crop') initCropPanel();
+    if(active&&active.id==='panel-edit') initEditPanel();
+    if(active&&active.id==='panel-ocr') initOcrPanel();
   };
-  img.src = dataURL;
+  img.src=url;
 }
 
-function addPageFromScan() {
-  if(!currentImg) { toast('📷 Scannez d\'abord une image','err'); return; }
-  addCurrentToPages();
+function imgToCanvas(img){
+  const c=document.createElement('canvas');
+  c.width=img.width; c.height=img.height;
+  c.getContext('2d').drawImage(img,0,0);
+  return c;
 }
 
-// ============================================================
-// EDIT CANVAS
-// ============================================================
-function renderEditCanvas() {
-  if(!currentImg) return;
-  const wrap = document.getElementById('edit-canvas-wrap');
-  const canvas = document.getElementById('edit-canvas');
-  const maxW = wrap.clientWidth - 10;
-  const maxH = wrap.clientHeight - 10;
-
-  let w = currentImg.width, h = currentImg.height;
-  const scale = Math.min(maxW/w, maxH/h, 1);
-  canvas.width = w; canvas.height = h;
-  canvas.style.width = (w*scale)+'px';
-  canvas.style.height = (h*scale)+'px';
-
-  applyFiltersToCanvas(canvas, currentImg);
+// ─── CROP PANEL ───────────────────────────────────────────
+function initCropPanel(){
+  if(!sourceImg){ document.getElementById('crop-noimg').style.display='flex'; return; }
+  document.getElementById('crop-noimg').style.display='none';
+  renderCropCanvas();
 }
 
-function applyFiltersToCanvas(canvas, img) {
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
+function renderCropCanvas(){
+  const wrap=document.getElementById('crop-wrap');
+  const canvas=document.getElementById('crop-canvas');
+  const maxW=wrap.clientWidth-4, maxH=wrap.clientHeight-4;
+  const scale=Math.min(maxW/sourceImg.width, maxH/sourceImg.height, 1);
+  canvas.width=sourceImg.width; canvas.height=sourceImg.height;
+  canvas.style.width=(sourceImg.width*scale)+'px';
+  canvas.style.height=(sourceImg.height*scale)+'px';
+  canvas.getContext('2d').drawImage(sourceImg,0,0);
 
-  // Apply rotation
-  const rad = (adjustments.rotate * Math.PI) / 180;
+  // Default crop = full image
+  if(!cropRect) cropRect={x:0,y:0,w:sourceImg.width,h:sourceImg.height};
+  updateCropOverlay(scale);
+  setupCropDrag(canvas, scale);
+}
+
+function updateCropOverlay(scale){
+  if(!cropRect) return;
+  const ov=document.getElementById('crop-overlay');
+  ov.style.display='block';
+  ov.style.left=(cropRect.x*scale)+'px';
+  ov.style.top=(cropRect.y*scale)+'px';
+  ov.style.width=(cropRect.w*scale)+'px';
+  ov.style.height=(cropRect.h*scale)+'px';
+  const canvas=document.getElementById('crop-canvas');
+  const wrap=document.getElementById('crop-wrap');
+  // Position relative to wrap
+  const cr=canvas.getBoundingClientRect();
+  const wr=wrap.getBoundingClientRect();
+  ov.style.left=(cr.left-wr.left+cropRect.x*scale)+'px';
+  ov.style.top=(cr.top-wr.top+cropRect.y*scale)+'px';
+}
+
+function setupCropDrag(canvas,scale){
+  let dragging=false,startX,startY,startRect;
+  canvas.onmousedown=canvas.ontouchstart=e=>{
+    e.preventDefault();
+    const pos=getPos(e,canvas);
+    startX=pos.x/scale; startY=pos.y/scale;
+    startRect={...cropRect};
+    dragging=true;
+    // New selection
+    cropRect={x:startX,y:startY,w:0,h:0};
+  };
+  canvas.onmousemove=canvas.ontouchmove=e=>{
+    if(!dragging) return;
+    e.preventDefault();
+    const pos=getPos(e,canvas);
+    const cx=pos.x/scale, cy=pos.y/scale;
+    cropRect={
+      x:Math.min(startX,cx), y:Math.min(startY,cy),
+      w:Math.abs(cx-startX), h:Math.abs(cy-startY)
+    };
+    updateCropOverlay(scale);
+  };
+  canvas.onmouseup=canvas.ontouchend=()=>{ dragging=false; };
+}
+
+function getPos(e, el){
+  const r=el.getBoundingClientRect();
+  const src=e.touches?e.touches[0]:e;
+  return {x:src.clientX-r.left, y:src.clientY-r.top};
+}
+
+function setCropPreset(preset){
+  if(!sourceImg) return;
+  const W=sourceImg.width, H=sourceImg.height;
+  const ratios={a4:210/297,a3:297/420,letter:216/279,id:85.6/54,passport:125/88,photo4x4:1,visa:35/45,free:null};
+  const ratio=ratios[preset];
+  if(!ratio){ cropRect={x:0,y:0,w:W,h:H}; }
+  else{
+    // Fit preset ratio inside image
+    let cw=W*0.85, ch=cw/ratio;
+    if(ch>H*0.85){ ch=H*0.85; cw=ch*ratio; }
+    cropRect={x:(W-cw)/2,y:(H-ch)/2,w:cw,h:ch};
+  }
+  const wrap=document.getElementById('crop-wrap');
+  const scale=Math.min((wrap.clientWidth-4)/W,(wrap.clientHeight-4)/H,1);
+  updateCropOverlay(scale);
+  toast('📐 '+preset.toUpperCase(),'ok');
+}
+
+function applyCrop(){
+  if(!sourceImg||!cropRect||cropRect.w<5||cropRect.h<5){ toast('Sélectionnez une zone à recadrer','err'); return; }
+  const c=document.createElement('canvas');
+  c.width=Math.round(cropRect.w); c.height=Math.round(cropRect.h);
+  c.getContext('2d').drawImage(sourceImg,cropRect.x,cropRect.y,cropRect.w,cropRect.h,0,0,c.width,c.height);
+  // Replace sourceImg with cropped
+  const url=c.toDataURL('image/jpeg',0.95);
+  const img=new Image();
+  img.onload=()=>{
+    sourceImg=img;
+    workingCanvas=c;
+    cropRect=null;
+    toast('✅ Recadrage appliqué','ok');
+    goPanel('edit');
+  };
+  img.src=url;
+}
+
+// ─── EDIT / FILTERS ───────────────────────────────────────
+function initEditPanel(){
+  if(!sourceImg){ document.getElementById('edit-noimg').style.display='flex'; return; }
+  document.getElementById('edit-noimg').style.display='none';
+  renderEdit();
+}
+
+function renderEdit(){
+  if(!sourceImg) return;
+  const wrap=document.querySelector('.edit-preview');
+  const canvas=document.getElementById('edit-canvas');
+  const maxW=wrap.clientWidth-4, maxH=wrap.clientHeight-4;
+  const scale=Math.min(maxW/sourceImg.width, maxH/sourceImg.height, 1);
+  canvas.width=sourceImg.width; canvas.height=sourceImg.height;
+  canvas.style.width=(sourceImg.width*scale)+'px';
+  canvas.style.height=(sourceImg.height*scale)+'px';
+  applyFilters(canvas, sourceImg);
+  workingCanvas=canvas;
+}
+
+function applyFilters(canvas, img){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  // Draw with rotation
   ctx.save();
-  ctx.translate(w/2, h/2);
-  ctx.rotate(rad);
-  ctx.translate(-w/2, -h/2);
-  ctx.drawImage(img, 0, 0, w, h);
+  ctx.translate(W/2,H/2);
+  ctx.rotate((adjRo||0)*Math.PI/180);
+  ctx.translate(-W/2,-H/2);
+  ctx.drawImage(img,0,0,W,H);
   ctx.restore();
 
-  // Apply pixel filters
-  const imageData = ctx.getImageData(0,0,w,h);
-  const data = imageData.data;
-  const br = adjustments.brightness * 2.55;
-  const con = adjustments.contrast;
-  const factor = (259*(con+255))/(255*(259-con));
+  const id=ctx.getImageData(0,0,W,H);
+  const d=id.data;
+  const br=(adjBr||0)*2.55;
+  const con=(adjCo||0);
+  const factor=(259*(con+255))/(255*(259-con));
 
-  for(let i=0;i<data.length;i+=4) {
-    let r=data[i], g=data[i+1], b=data[i+2];
-
-    // Brightness
+  for(let i=0;i<d.length;i+=4){
+    let r=d[i],g=d[i+1],b=d[i+2];
     r+=br; g+=br; b+=br;
-    // Contrast
     r=factor*(r-128)+128; g=factor*(g-128)+128; b=factor*(b-128)+128;
-
-    if(currentFilter==='bw') {
-      const gray=0.299*r+0.587*g+0.114*b;
-      r=g=b=gray>128?255:0;
-    } else if(currentFilter==='gray') {
-      const gray=0.299*r+0.587*g+0.114*b;
-      r=g=b=gray;
-    } else if(currentFilter==='enhance') {
-      r=Math.min(255,r*1.1+10); g=Math.min(255,g*1.05+5); b=Math.min(255,b*0.95);
-    } else if(currentFilter==='magic') {
-      // Auto-enhance: boost contrast & reduce noise
-      const gray=0.299*r+0.587*g+0.114*b;
-      if(gray>180){r=Math.min(255,r+30);g=Math.min(255,g+30);b=Math.min(255,b+30);}
-      else if(gray<80){r=Math.max(0,r-30);g=Math.max(0,g-30);b=Math.max(0,b-30);}
-    } else if(currentFilter==='sharp') {
-      r=Math.min(255,Math.max(0,r*1.15-15));
-      g=Math.min(255,Math.max(0,g*1.15-15));
-      b=Math.min(255,Math.max(0,b*1.15-15));
+    if(activeFilter==='bw'){
+      const gr=0.299*r+0.587*g+0.114*b;
+      r=g=b=gr>128?255:0;
+    }else if(activeFilter==='gray'){
+      const gr=0.299*r+0.587*g+0.114*b; r=g=b=gr;
+    }else if(activeFilter==='enhance'){
+      const gr=0.299*r+0.587*g+0.114*b;
+      if(gr>180){r=Math.min(255,r+40);g=Math.min(255,g+40);b=Math.min(255,b+40);}
+      else if(gr<80){r=Math.max(0,r-40);g=Math.max(0,g-40);b=Math.max(0,b-40);}
+    }else if(activeFilter==='sharp'){
+      r=Math.min(255,Math.max(0,r*1.2-20));
+      g=Math.min(255,Math.max(0,g*1.2-20));
+      b=Math.min(255,Math.max(0,b*1.2-20));
+    }else if(activeFilter==='warm'){
+      r=Math.min(255,r+20); b=Math.max(0,b-15);
     }
-
-    data[i]=Math.min(255,Math.max(0,r));
-    data[i+1]=Math.min(255,Math.max(0,g));
-    data[i+2]=Math.min(255,Math.max(0,b));
+    d[i]=Math.min(255,Math.max(0,r));
+    d[i+1]=Math.min(255,Math.max(0,g));
+    d[i+2]=Math.min(255,Math.max(0,b));
   }
-  ctx.putImageData(imageData,0,0);
+  ctx.putImageData(id,0,0);
 }
 
-function applyFilter(f, el) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+function setFilter(f,el){
+  activeFilter=f;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
-  renderEditCanvas();
+  renderEdit();
 }
 
-function adjustImage(type, val) {
-  adjustments[type] = parseFloat(val);
-  renderEditCanvas();
+function adj(type,display,vid,val){
+  if(type==='br') adjBr=parseFloat(display);
+  if(type==='co') adjCo=parseFloat(display);
+  if(type==='ro') adjRo=parseFloat(display||val);
+  document.getElementById(vid).textContent=display;
+  renderEdit();
 }
 
-function setPreset(preset, el) {
-  currentPreset = preset;
-  document.querySelectorAll('.preset-item').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  toast('📐 Format: '+preset.toUpperCase(),'ok');
-}
+// ─── EXPORT IMAGE ─────────────────────────────────────────
+function exportImg(fmt){
+  if(!workingCanvas){ toast('Aucune image à exporter','err'); return; }
 
-// ============================================================
-// SELECTION MODE (for OCR zone)
-// ============================================================
-function toggleSelMode() {
-  selMode = !selMode;
-  const info = document.getElementById('sel-info');
-  info.classList.toggle('show', selMode);
-  document.getElementById('edit-canvas').style.cursor = selMode ? 'crosshair' : 'default';
-  if(!selMode) {
-    document.getElementById('sel-overlay').style.display='none';
-    selRect=null;
+  // Always re-render to a fresh full-res canvas
+  const out=document.createElement('canvas');
+  out.width=sourceImg.width; out.height=sourceImg.height;
+  applyFilters(out, sourceImg);
+
+  if(fmt==='pdf'){
+    const {jsPDF}=window.jspdf;
+    const pw=210,ph=297; // A4 mm
+    const doc=new jsPDF({unit:'mm',format:'a4'});
+    const ratio=Math.min(pw/out.width*3.7795, ph/out.height*3.7795);
+    const dw=out.width*ratio/3.7795, dh=out.height*ratio/3.7795;
+    doc.addImage(out.toDataURL('image/jpeg',0.95),'JPEG',(pw-dw)/2,(ph-dh)/2,dw,dh);
+    doc.save('scanpro_'+Date.now()+'.pdf');
+  } else {
+    const mime=fmt==='png'?'image/png':'image/jpeg';
+    const a=document.createElement('a');
+    a.href=out.toDataURL(mime,0.95);
+    a.download='scanpro_'+Date.now()+'.'+fmt;
+    a.click();
   }
-  toast(selMode ? '🎯 Mode sélection activé':'🎯 Mode sélection désactivé','ok');
+  toast('⬇️ Exporté en '+fmt.toUpperCase(),'ok');
 }
 
-// Canvas mouse events for selection
-document.getElementById('edit-canvas').addEventListener('mousedown',e=>{
-  if(!selMode) return;
-  const r = e.target.getBoundingClientRect();
-  selStart={x:e.clientX-r.left, y:e.clientY-r.top};
-});
-document.getElementById('edit-canvas').addEventListener('mousemove',e=>{
-  if(!selMode||!selStart) return;
-  const r = e.target.getBoundingClientRect();
-  const x=e.clientX-r.left, y=e.clientY-r.top;
-  const ov=document.getElementById('sel-overlay');
-  const sx=Math.min(selStart.x,x), sy=Math.min(selStart.y,y);
-  const sw=Math.abs(x-selStart.x), sh=Math.abs(y-selStart.y);
-  ov.style.cssText=`display:block;left:${sx}px;top:${sy}px;width:${sw}px;height:${sh}px;`;
-  selRect={x:sx,y:sy,w:sw,h:sh};
-});
-document.getElementById('edit-canvas').addEventListener('mouseup',()=>{ if(selMode)selStart=null; });
-
-// Touch support
-document.getElementById('edit-canvas').addEventListener('touchstart',e=>{
-  if(!selMode) return;
-  const t=e.touches[0];
-  const r=e.target.getBoundingClientRect();
-  selStart={x:t.clientX-r.left,y:t.clientY-r.top};
-},{passive:true});
-document.getElementById('edit-canvas').addEventListener('touchmove',e=>{
-  if(!selMode||!selStart) return;
-  const t=e.touches[0];
-  const r=e.target.getBoundingClientRect();
-  const x=t.clientX-r.left,y=t.clientY-r.top;
-  const ov=document.getElementById('sel-overlay');
-  const sx=Math.min(selStart.x,x),sy=Math.min(selStart.y,y);
-  const sw=Math.abs(x-selStart.x),sh=Math.abs(y-selStart.y);
-  ov.style.cssText=`display:block;left:${sx}px;top:${sy}px;width:${sw}px;height:${sh}px;`;
-  selRect={x:sx,y:sy,w:sw,h:sh};
-},{passive:true});
-
-async function ocrSelectedZone() {
-  if(!selRect||!currentImg) { toast('🎯 Sélectionnez d\'abord une zone','err'); return; }
-  const canvas=document.getElementById('edit-canvas');
-  const scaleX=currentImg.width/canvas.clientWidth;
-  const scaleY=currentImg.height/canvas.clientHeight;
-  // Create temp canvas with selection
-  const tmp=document.createElement('canvas');
-  tmp.width=selRect.w*scaleX; tmp.height=selRect.h*scaleY;
-  tmp.getContext('2d').drawImage(canvas,
-    selRect.x*scaleX, selRect.y*scaleY, selRect.w*scaleX, selRect.h*scaleY,
-    0,0,tmp.width,tmp.height);
-  switchPanel('ocr');
-  showProgress('🧠 OCR Zone sélectionnée...','Analyse en cours...');
-  try {
-    const lang=document.getElementById('ocr-lang').value;
-    const {data:{text}}=await Tesseract.recognize(tmp,lang,{
-      logger:m=>{ if(m.status==='recognizing text') updateProgress(m.progress*100); }
-    });
-    hideProgress();
-    document.getElementById('ocr-text').value=text.trim();
-    toast('✅ Texte extrait !','ok');
-  } catch(e){ hideProgress(); toast('❌ Erreur OCR','err'); }
-}
-
-// ============================================================
-// DOWNLOAD EDITED IMAGE
-// ============================================================
-function downloadEditedImage(fmt) {
-  if(!currentImg){ toast('Aucune image à télécharger','err'); return; }
-  const c=document.getElementById('edit-canvas');
-  const mime=fmt==='png'?'image/png':'image/jpeg';
-  const a=document.createElement('a');
-  a.href=c.toDataURL(mime,0.95);
-  a.download='scanpro_'+Date.now()+'.'+fmt;
-  a.click();
-  toast('⬇️ Image téléchargée','ok');
-}
-
-function addCurrentToPages() {
-  if(!currentImg){ toast('Aucune image à ajouter','err'); return; }
-  const c=document.getElementById('edit-canvas');
-  const dataURL=c.toDataURL('image/jpeg',0.92);
-  pages.push(dataURL);
+function addToPages(){
+  if(!workingCanvas&&!sourceImg){ toast('Aucune image à ajouter','err'); return; }
+  const out=document.createElement('canvas');
+  const src=sourceImg||workingCanvas;
+  if(sourceImg){ out.width=sourceImg.width; out.height=sourceImg.height; applyFilters(out,sourceImg); }
+  else{ out.width=workingCanvas.width; out.height=workingCanvas.height; out.getContext('2d').drawImage(workingCanvas,0,0); }
+  pages.push(out.toDataURL('image/jpeg',0.9));
   updatePagesUI();
-  toast('➕ Page ajoutée ('+pages.length+' au total)','ok');
+  toast('➕ Page '+(pages.length)+' ajoutée','ok');
 }
 
-// ============================================================
-// OCR PANEL
-// ============================================================
-function renderOCRCanvas() {
-  if(!currentImg) return;
-  const wrap=document.getElementById('ocr-canvas').parentElement;
-  const canvas=document.getElementById('ocr-canvas');
-  const maxW=wrap.clientWidth-10, maxH=wrap.clientHeight-60;
-  const scale=Math.min(maxW/currentImg.width,maxH/currentImg.height,1);
-  canvas.width=currentImg.width; canvas.height=currentImg.height;
-  canvas.style.width=(currentImg.width*scale)+'px';
-  canvas.style.height=(currentImg.height*scale)+'px';
-  canvas.getContext('2d').drawImage(currentImg,0,0);
-  document.getElementById('ocr-hint').classList.add('show');
+// ─── OCR ──────────────────────────────────────────────────
+function initOcrPanel(){
+  if(!sourceImg){ document.getElementById('ocr-noimg').style.display='flex'; return; }
+  document.getElementById('ocr-noimg').style.display='none';
+  document.getElementById('ocr-hint').style.display='block';
+  renderOcrCanvas();
+  setupOcrSel();
 }
 
-// OCR canvas selection
-document.getElementById('ocr-canvas').addEventListener('mousedown',e=>{
-  const r=e.target.getBoundingClientRect();
-  ocrSelStart={x:e.clientX-r.left,y:e.clientY-r.top};
-  ocrSelecting=true;
-});
-document.getElementById('ocr-canvas').addEventListener('mousemove',e=>{
-  if(!ocrSelecting) return;
-  const r=e.target.getBoundingClientRect();
-  const x=e.clientX-r.left,y=e.clientY-r.top;
-  const sx=Math.min(ocrSelStart.x,x),sy=Math.min(ocrSelStart.y,y);
-  const sw=Math.abs(x-ocrSelStart.x),sh=Math.abs(y-ocrSelStart.y);
-  const ov=document.getElementById('ocr-sel-box');
-  ov.style.cssText=`display:block;left:${sx}px;top:${sy}px;width:${sw}px;height:${sh}px;`;
-  ocrSelRect={x:sx,y:sy,w:sw,h:sh};
-});
-document.getElementById('ocr-canvas').addEventListener('mouseup',async ()=>{
-  ocrSelecting=false;
-  if(ocrSelRect&&ocrSelRect.w>20&&ocrSelRect.h>20) {
-    await runOCROnZone(ocrSelRect);
-  }
-});
-
-async function runOCROnZone(rect) {
+function renderOcrCanvas(){
+  const wrap=document.getElementById('ocr-img-side');
   const canvas=document.getElementById('ocr-canvas');
-  const scaleX=currentImg.width/canvas.clientWidth;
-  const scaleY=currentImg.height/canvas.clientHeight;
+  const maxW=wrap.clientWidth-4, maxH=wrap.clientHeight-60;
+  const scale=Math.min(maxW/sourceImg.width, maxH/sourceImg.height, 1);
+  canvas.width=sourceImg.width; canvas.height=sourceImg.height;
+  canvas.style.width=(sourceImg.width*scale)+'px';
+  canvas.style.height=(sourceImg.height*scale)+'px';
+  canvas.getContext('2d').drawImage(sourceImg,0,0);
+}
+
+function setupOcrSel(){
+  const canvas=document.getElementById('ocr-canvas');
+  let dragging=false, sx,sy;
+
+  const down=e=>{ e.preventDefault(); const p=getPos(e,canvas); sx=p.x; sy=p.y; dragging=true; };
+  const move=e=>{ if(!dragging) return; e.preventDefault();
+    const p=getPos(e,canvas);
+    const ox=Math.min(sx,p.x),oy=Math.min(sy,p.y);
+    const ow=Math.abs(p.x-sx),oh=Math.abs(p.y-sy);
+    const sel=document.getElementById('ocr-sel');
+    const cr=canvas.getBoundingClientRect();
+    const wr=document.getElementById('ocr-img-side').getBoundingClientRect();
+    sel.style.cssText=`display:block;left:${cr.left-wr.left+ox}px;top:${cr.top-wr.top+oy}px;width:${ow}px;height:${oh}px;`;
+    ocrRect={x:ox,y:oy,w:ow,h:oh};
+  };
+  const up=async ()=>{ if(!dragging) return; dragging=false;
+    if(ocrRect&&ocrRect.w>20&&ocrRect.h>20) await ocrZone(ocrRect);
+  };
+
+  canvas.addEventListener('mousedown',down);
+  canvas.addEventListener('mousemove',move);
+  canvas.addEventListener('mouseup',up);
+  canvas.addEventListener('touchstart',down,{passive:false});
+  canvas.addEventListener('touchmove',move,{passive:false});
+  canvas.addEventListener('touchend',up);
+}
+
+async function ocrZone(rect){
+  const canvas=document.getElementById('ocr-canvas');
+  const scaleX=sourceImg.width/canvas.clientWidth;
+  const scaleY=sourceImg.height/canvas.clientHeight;
   const tmp=document.createElement('canvas');
-  tmp.width=rect.w*scaleX; tmp.height=rect.h*scaleY;
-  tmp.getContext('2d').drawImage(canvas,
-    rect.x*scaleX,rect.y*scaleY,rect.w*scaleX,rect.h*scaleY,
+  tmp.width=Math.round(rect.w*scaleX);
+  tmp.height=Math.round(rect.h*scaleY);
+  tmp.getContext('2d').drawImage(sourceImg,
+    rect.x*scaleX, rect.y*scaleY, tmp.width, tmp.height,
     0,0,tmp.width,tmp.height);
-  await doOCR(tmp);
+  await runOCR(tmp);
 }
 
-async function runOCRFull() {
-  if(!currentImg){ toast('Scannez d\'abord une image','err'); return; }
-  const canvas=document.getElementById('ocr-canvas');
-  await doOCR(canvas);
+async function ocrFull(){
+  if(!sourceImg){ toast('Scannez d\'abord une image','err'); return; }
+  // Use a clean canvas at full resolution for best accuracy
+  const c=document.createElement('canvas');
+  c.width=sourceImg.width; c.height=sourceImg.height;
+  c.getContext('2d').drawImage(sourceImg,0,0);
+  await runOCR(c);
 }
 
-async function doOCR(source) {
-  const lang=document.getElementById('ocr-lang').value;
-  showProgress('🧠 Analyse OCR...','Reconnaissance du texte en cours');
-  try {
-    const {data:{text}}=await Tesseract.recognize(source,lang,{
-      logger:m=>{ if(m.status==='recognizing text') updateProgress(m.progress*100); }
+async function runOCR(source){
+  showProg('🧠 OCR en cours...','Reconnaissance du texte');
+  try{
+    const lang=document.getElementById('ocr-lang').value;
+    const {data:{text}}=await Tesseract.recognize(source, lang, {
+      logger:m=>{
+        if(m.status==='recognizing text') setProg(m.progress*100);
+      }
     });
-    hideProgress();
-    document.getElementById('ocr-text').value=text.trim();
-    document.getElementById('ocr-sel-box').style.display='none';
-    ocrSelRect=null;
-    toast('✅ '+text.trim().length+' caractères extraits','ok');
-  } catch(e){ hideProgress(); toast('❌ Erreur OCR: '+e.message,'err'); }
+    hideProg();
+    const result=text.trim();
+    document.getElementById('ocr-text').value=result||'Aucun texte détecté.';
+    document.getElementById('ocr-sel').style.display='none';
+    ocrRect=null;
+    toast('✅ '+(result.length)+' caractères extraits','ok');
+  }catch(e){
+    hideProg();
+    toast('❌ Erreur OCR: '+e.message,'err');
+  }
 }
 
-function copyOCR() {
+function copyOcr(){
   const t=document.getElementById('ocr-text').value;
   if(!t){ toast('Aucun texte','err'); return; }
   navigator.clipboard.writeText(t).then(()=>toast('📋 Copié !','ok'));
 }
 
-function exportOCRtxt() {
+function exportOcrTxt(){
   const t=document.getElementById('ocr-text').value;
-  if(!t){ toast('Aucun texte à exporter','err'); return; }
-  const blob=new Blob([t],{type:'text/plain;charset=utf-8'});
+  if(!t){ toast('Aucun texte','err'); return; }
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
+  a.href=URL.createObjectURL(new Blob([t],{type:'text/plain;charset=utf-8'}));
   a.download='scanpro_ocr_'+Date.now()+'.txt';
   a.click();
   toast('⬇️ Texte exporté','ok');
 }
 
-// ============================================================
-// PAGES & MULTI-PAGE EXPORT
-// ============================================================
-function updatePagesUI() {
-  const list=document.getElementById('pages-list');
+// ─── PAGES ────────────────────────────────────────────────
+function updatePagesUI(){
+  document.getElementById('pg-count').textContent=pages.length;
+  const grid=document.getElementById('pages-grid');
   const empty=document.getElementById('pages-empty');
-  document.getElementById('page-count').textContent=pages.length;
   empty.style.display=pages.length?'none':'block';
-
-  // Remove existing thumbnails
-  list.querySelectorAll('.page-thumb').forEach(t=>t.remove());
-
-  pages.forEach((dataURL,i)=>{
+  grid.querySelectorAll('.page-card').forEach(c=>c.remove());
+  pages.forEach((url,i)=>{
     const div=document.createElement('div');
-    div.className='page-thumb';
-    div.innerHTML=`
-      <img src="${dataURL}" loading="lazy">
-      <div class="page-thumb-footer">
-        <span class="page-num">Page ${i+1}</span>
-        <button class="page-del" onclick="deletePage(${i})">🗑️</button>
-      </div>`;
-    div.querySelector('img').onclick=()=>{ loadImageFromURL(dataURL); switchPanel('edit'); };
-    list.appendChild(div);
+    div.className='page-card';
+    div.innerHTML=`<img src="${url}" loading="lazy"><div class="page-footer"><span class="page-num">Page ${i+1}</span><button class="page-del" onclick="delPage(${i})">🗑️</button></div>`;
+    div.querySelector('img').onclick=()=>{ loadImageFromURL(url); goPanel('edit'); };
+    grid.appendChild(div);
   });
 }
 
-function deletePage(i) {
-  pages.splice(i,1);
-  updatePagesUI();
-  toast('🗑️ Page supprimée','');
-}
+function delPage(i){ pages.splice(i,1); updatePagesUI(); toast('🗑️ Page supprimée',''); }
+function clearPages(){ pages=[]; updatePagesUI(); toast('🗑️ Pages effacées',''); }
 
-function clearAllPages() {
-  if(!pages.length) return;
-  pages=[];
-  updatePagesUI();
-  toast('🗑️ Toutes les pages effacées','');
-}
-
-let pdfExportSize = 'a4';
-function setPdfSize(s,el) {
-  pdfExportSize=s;
-  document.querySelectorAll('.pages-tools .preset-item').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-}
-
-async function exportAllPDF() {
-  if(!pages.length){ toast('Ajoutez des pages d\'abord','err'); return; }
-  showProgress('📄 Génération PDF...','Création du document multi-pages');
-  const {jsPDF}=window.jspdf;
-  const sizes={a4:[210,297],a3:[297,420],letter:[216,279]};
-  const [pw,ph]=sizes[pdfExportSize]||sizes.a4;
-  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:pdfExportSize});
-
-  for(let i=0;i<pages.length;i++){
-    updateProgress((i/pages.length)*100);
-    if(i>0) doc.addPage();
-    const img=new Image(); img.src=pages[i];
-    await new Promise(r=>img.onload=r);
-    const imgW=img.width, imgH=img.height;
-    const ratio=Math.min(pw/imgW*3.7795,ph/imgH*3.7795);
-    const dw=imgW*ratio/3.7795, dh=imgH*ratio/3.7795;
-    const dx=(pw-dw)/2, dy=(ph-dh)/2;
-    doc.addImage(pages[i],'JPEG',dx,dy,dw,dh);
-  }
-  hideProgress();
-  doc.save('scanpro_'+pages.length+'pages_'+Date.now()+'.pdf');
-  toast('📄 PDF exporté ('+pages.length+' pages)','ok');
-}
-
-async function exportAllWord() {
-  if(!pages.length){ toast('Ajoutez des pages d\'abord','err'); return; }
-  showProgress('📝 Génération Word...','Création du document');
-  try {
-    const children=[];
+async function exportAll(fmt){
+  if(!pages.length){ toast('Aucune page','err'); return; }
+  if(fmt==='pdf'){
+    showProg('📄 Génération PDF...','Création du document multi-pages');
+    const {jsPDF}=window.jspdf;
+    const sizes={a4:[210,297],a3:[297,420],letter:[216,279]};
+    const [pw,ph]=sizes[pdfFmt]||sizes.a4;
+    const doc=new jsPDF({unit:'mm',format:pdfFmt});
     for(let i=0;i<pages.length;i++){
-      updateProgress((i/pages.length)*100);
-      const b64=pages[i].split(',')[1];
-      children.push(new docx.Paragraph({
-        children:[new docx.ImageRun({
-          data:b64, transformation:{width:595,height:842},
-          type:'jpg'
-        })]
-      }));
-      if(i<pages.length-1) children.push(new docx.Paragraph({
-        pageBreakBefore:true,children:[]
-      }));
+      setProg((i/pages.length)*100);
+      if(i>0) doc.addPage();
+      const img=new Image(); img.src=pages[i];
+      await new Promise(r=>img.onload=r);
+      const ratio=Math.min(pw/img.width*3.7795, ph/img.height*3.7795);
+      const dw=img.width*ratio/3.7795, dh=img.height*ratio/3.7795;
+      doc.addImage(pages[i],'JPEG',(pw-dw)/2,(ph-dh)/2,dw,dh);
     }
-    const d=new docx.Document({sections:[{children}]});
-    const blob=await docx.Packer.toBlob(d);
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='scanpro_'+Date.now()+'.docx';
-    a.click();
-    hideProgress();
-    toast('📝 Word exporté !','ok');
-  } catch(e){ hideProgress(); toast('❌ Erreur Word: '+e.message,'err'); }
-}
-
-function exportAllImages(fmt) {
-  if(!pages.length){ toast('Ajoutez des pages d\'abord','err'); return; }
-  pages.forEach((dataURL,i)=>{
-    const a=document.createElement('a');
-    const canvas=document.createElement('canvas');
-    const img=new Image(); img.src=dataURL;
-    img.onload=()=>{
-      canvas.width=img.width; canvas.height=img.height;
-      canvas.getContext('2d').drawImage(img,0,0);
-      a.href=canvas.toDataURL(fmt==='png'?'image/png':'image/jpeg',0.92);
-      a.download='scanpro_page'+(i+1)+'_'+Date.now()+'.'+fmt;
+    hideProg();
+    doc.save('scanpro_'+pages.length+'p_'+Date.now()+'.pdf');
+    toast('📄 PDF exporté ('+pages.length+' pages)','ok');
+  } else if(fmt==='word'){
+    showProg('📝 Génération Word...','');
+    try{
+      const children=[];
+      for(let i=0;i<pages.length;i++){
+        setProg((i/pages.length)*100);
+        const b64=pages[i].split(',')[1];
+        children.push(new docx.Paragraph({
+          children:[new docx.ImageRun({data:b64,transformation:{width:595,height:842},type:'jpg'})]
+        }));
+        if(i<pages.length-1) children.push(new docx.Paragraph({pageBreakBefore:true,children:[]}));
+      }
+      const d=new docx.Document({sections:[{children}]});
+      const blob=await docx.Packer.toBlob(d);
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='scanpro_'+Date.now()+'.docx';
       a.click();
-    };
-  });
-  toast('⬇️ '+pages.length+' images téléchargées','ok');
+      hideProg();
+      toast('📝 Word exporté !','ok');
+    }catch(e){ hideProg(); toast('❌ '+e.message,'err'); }
+  } else {
+    const mime=fmt==='png'?'image/png':'image/jpeg';
+    pages.forEach((url,i)=>{
+      const a=document.createElement('a');
+      a.href=url; a.download='scanpro_p'+(i+1)+'_'+Date.now()+'.'+fmt;
+      a.click();
+    });
+    toast('⬇️ '+pages.length+' images exportées','ok');
+  }
 }
 
-// ============================================================
-// SIGNATURE
-// ============================================================
-function renderSignCanvas() {
-  if(!currentImg) return;
-  const wrap=document.getElementById('sign-doc-canvas').parentElement;
-  const canvas=document.getElementById('sign-doc-canvas');
-  const scale=Math.min((wrap.clientWidth-10)/currentImg.width,(wrap.clientHeight-60)/currentImg.height,1);
-  canvas.width=currentImg.width; canvas.height=currentImg.height;
-  canvas.style.width=(currentImg.width*scale)+'px';
-  canvas.style.height=(currentImg.height*scale)+'px';
-  canvas.getContext('2d').drawImage(currentImg,0,0);
-}
-
-function loadDocForSign() {
-  const inp=document.createElement('input');
-  inp.type='file'; inp.accept='image/*';
-  inp.onchange=e=>{
-    const f=e.target.files[0];
-    if(!f) return;
-    const r=new FileReader();
-    r.onload=ev=>{ loadImageFromURL(ev.target.result); renderSignCanvas(); };
-    r.readAsDataURL(f);
-  };
-  inp.click();
-}
-
-function openSignPad() {
-  document.getElementById('sign-pad-wrap').classList.add('show');
+// ─── SIGNATURE ────────────────────────────────────────────
+function initSignPanel(){
+  if(!sourceImg){ document.getElementById('sign-noimg').style.display='flex'; return; }
+  document.getElementById('sign-noimg').style.display='none';
+  const wrap=document.querySelector('.sign-doc');
   const canvas=document.getElementById('sign-canvas');
-  signCtx=canvas.getContext('2d');
-  signCtx.fillStyle='white';
-  signCtx.fillRect(0,0,canvas.width,canvas.height);
-  signCtx.strokeStyle='#0a0a0a';
-  signCtx.lineWidth=2.5;
-  signCtx.lineCap='round';
-
-  canvas.onmousedown=e=>{ signPainting=true; signCtx.beginPath(); const r=canvas.getBoundingClientRect(); signCtx.moveTo(e.clientX-r.left,e.clientY-r.top); };
-  canvas.onmousemove=e=>{ if(!signPainting) return; const r=canvas.getBoundingClientRect(); signCtx.lineTo(e.clientX-r.left,e.clientY-r.top); signCtx.stroke(); };
-  canvas.onmouseup=()=>signPainting=false;
-  canvas.ontouchstart=e=>{ e.preventDefault(); signPainting=true; signCtx.beginPath(); const r=canvas.getBoundingClientRect(); const t=e.touches[0]; signCtx.moveTo(t.clientX-r.left,t.clientY-r.top); };
-  canvas.ontouchmove=e=>{ e.preventDefault(); if(!signPainting) return; const r=canvas.getBoundingClientRect(); const t=e.touches[0]; signCtx.lineTo(t.clientX-r.left,t.clientY-r.top); signCtx.stroke(); };
-  canvas.ontouchend=()=>signPainting=false;
+  const scale=Math.min((wrap.clientWidth-4)/sourceImg.width,(wrap.clientHeight-60)/sourceImg.height,1);
+  canvas.width=sourceImg.width; canvas.height=sourceImg.height;
+  canvas.style.width=(sourceImg.width*scale)+'px';
+  canvas.style.height=(sourceImg.height*scale)+'px';
+  canvas.getContext('2d').drawImage(sourceImg,0,0);
 }
 
-function clearSignPad() {
-  const c=document.getElementById('sign-canvas');
-  signCtx.fillStyle='white'; signCtx.fillRect(0,0,c.width,c.height);
+function loadSignDoc(){ triggerUpload(); }
+
+function openSignPad(){
+  document.getElementById('sign-modal').classList.add('open');
+  const canvas=document.getElementById('draw-canvas');
+  drawCtx=canvas.getContext('2d');
+  drawCtx.fillStyle='white'; drawCtx.fillRect(0,0,canvas.width,canvas.height);
+  drawCtx.strokeStyle='#111'; drawCtx.lineWidth=2.5; drawCtx.lineCap='round';
+  canvas.onpointerdown=e=>{ drawPainting=true; drawCtx.beginPath(); const r=canvas.getBoundingClientRect(); drawCtx.moveTo(e.clientX-r.left,e.clientY-r.top); };
+  canvas.onpointermove=e=>{ if(!drawPainting) return; const r=canvas.getBoundingClientRect(); drawCtx.lineTo(e.clientX-r.left,e.clientY-r.top); drawCtx.stroke(); };
+  canvas.onpointerup=()=>drawPainting=false;
 }
 
-function saveSignature() {
-  const c=document.getElementById('sign-canvas');
-  signatureImg=new Image(); signatureImg.src=c.toDataURL();
-  closeSignPad();
-  document.getElementById('btn-place-sign').disabled=false;
-  toast('✅ Signature enregistrée — cliquez "Placer"','ok');
+function clearDraw(){
+  const c=document.getElementById('draw-canvas');
+  drawCtx.fillStyle='white'; drawCtx.fillRect(0,0,c.width,c.height);
 }
 
-function closeSignPad() {
-  document.getElementById('sign-pad-wrap').classList.remove('show');
+function saveSign(){
+  const c=document.getElementById('draw-canvas');
+  signImg=new Image(); signImg.src=c.toDataURL();
+  closeSign();
+  document.getElementById('btn-place').disabled=false;
+  toast('✅ Signature prête — cliquez Placer','ok');
 }
 
-function placeSignature() {
-  if(!signatureImg||!currentImg){ toast('Créez d\'abord une signature','err'); return; }
-  const canvas=document.getElementById('sign-doc-canvas');
+function closeSign(){ document.getElementById('sign-modal').classList.remove('open'); }
+
+function placeSign(){
+  if(!signImg){ return; }
+  const canvas=document.getElementById('sign-canvas');
   const ctx=canvas.getContext('2d');
-  // Place signature at bottom-right
-  const sw=canvas.width*0.3, sh=canvas.height*0.08;
-  const sx=canvas.width*0.65, sy=canvas.height*0.85;
-  ctx.drawImage(signatureImg,sx,sy,sw,sh);
+  const sw=canvas.width*0.3, sh=canvas.height*0.07;
+  ctx.drawImage(signImg, canvas.width*0.65, canvas.height*0.85, sw, sh);
   toast('✍️ Signature placée !','ok');
 }
 
-function downloadSignedDoc() {
-  if(!currentImg){ toast('Aucun document','err'); return; }
+function downloadSigned(){
+  if(!sourceImg){ toast('Aucun document','err'); return; }
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF();
-  const canvas=document.getElementById('sign-doc-canvas');
-  doc.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',5,5,200,280);
+  const c=document.getElementById('sign-canvas');
+  doc.addImage(c.toDataURL('image/jpeg',0.95),'JPEG',5,5,200,280);
   doc.save('scanpro_signe_'+Date.now()+'.pdf');
   toast('📄 Document signé téléchargé','ok');
 }
 
-// ============================================================
-// PROGRESS
-// ============================================================
-function showProgress(title,sub) {
+// ─── PROGRESS ─────────────────────────────────────────────
+function showProg(title,sub){
   document.getElementById('prog-title').textContent=title;
   document.getElementById('prog-sub').textContent=sub;
-  document.getElementById('prog-fill').style.width='0%';
-  document.getElementById('prog-pct').textContent='0%';
-  document.getElementById('prog-overlay').classList.add('show');
+  setProg(0);
+  document.getElementById('prog-bg').classList.add('open');
 }
-function updateProgress(pct) {
+function setProg(pct){
   document.getElementById('prog-fill').style.width=pct+'%';
   document.getElementById('prog-pct').textContent=Math.round(pct)+'%';
 }
-function hideProgress() {
-  updateProgress(100);
-  setTimeout(()=>document.getElementById('prog-overlay').classList.remove('show'),400);
+function hideProg(){
+  setProg(100);
+  setTimeout(()=>document.getElementById('prog-bg').classList.remove('open'),350);
 }
 
-// ============================================================
-// TOAST
-// ============================================================
-let toastTimer;
-function toast(msg,type='') {
+// ─── TOAST ────────────────────────────────────────────────
+let toastT;
+function toast(msg,type=''){
   const t=document.getElementById('toast');
   t.textContent=msg;
   t.className='toast show '+(type==='ok'?'ok':type==='err'?'err':'');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),2800);
 }
 </script>
 </body>
