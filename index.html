@@ -3,610 +3,773 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>ScanPro — Scanner Pro</title>
+<title>ScanPro — Scanner Intelligent</title>
+<!-- OpenCV.js for real edge detection & perspective correction -->
+<script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
+<!-- Tesseract OCR -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+<!-- PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- Word -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.7.0/docx.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- QRCode -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0a0a0f;--surface:#111118;--card:#18181f;--card2:#1e1e28;
-  --border:#252530;--border2:#2e2e3a;
-  --green:#00d084;--green2:#00ff9d;--green-dim:rgba(0,208,132,0.1);
-  --text:#eeeef5;--muted:#55556a;--muted2:#30303d;
-  --accent:#5b7fff;--gold:#ffd060;--red:#ff4f6a;--teal:#00c4cc;
+  --bg:#07070f;--s1:#0e0e1a;--s2:#141420;--s3:#1a1a28;
+  --b1:#222235;--b2:#2c2c42;
+  --green:#00e087;--green2:#00ff9f;--gd:rgba(0,224,135,.1);
+  --blue:#4d8aff;--purple:#9b5fff;--gold:#ffcc44;
+  --red:#ff4466;--teal:#00d4e0;
+  --tx:#ececf8;--mt:#5a5a7a;--mt2:#2a2a3a;
+  --sh:0 8px 32px rgba(0,0,0,.4);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{height:100%;height:-webkit-fill-available;}
 body{
-  font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
+  font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);
   display:flex;flex-direction:column;
   height:100vh;height:100dvh;overflow:hidden;
-  padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-bottom:env(safe-area-inset-bottom,0);
 }
 
-/* ── HEADER ── */
+/* ──────── HEADER ──────── */
 .hdr{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 14px;background:var(--surface);
-  border-bottom:1px solid var(--border);flex-shrink:0;z-index:200;
+  display:flex;align-items:center;gap:10px;
+  padding:0 14px;height:54px;
+  background:var(--s1);border-bottom:1px solid var(--b1);
+  flex-shrink:0;z-index:200;
 }
-.logo{display:flex;align-items:center;gap:9px;}
-.logo-mark{
-  width:32px;height:32px;
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.lmark{
+  width:32px;height:32px;border-radius:9px;
   background:linear-gradient(135deg,var(--green),#00897b);
-  border-radius:9px;display:flex;align-items:center;justify-content:center;
-  font-size:16px;box-shadow:0 0 12px rgba(0,208,132,0.3);
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+  box-shadow:0 0 14px rgba(0,224,135,.35);
+  animation:pulse-logo 4s ease-in-out infinite;
 }
-.logo-name{font-weight:800;font-size:17px;letter-spacing:-0.5px;}
-.logo-name span{color:var(--green);}
-.hdr-right{display:flex;gap:7px;align-items:center;}
+@keyframes pulse-logo{0%,100%{box-shadow:0 0 14px rgba(0,224,135,.35)}50%{box-shadow:0 0 22px rgba(0,224,135,.55)}}
+.lname{font-weight:900;font-size:17px;letter-spacing:-.5px;color:var(--tx);}
+.lname span{color:var(--green);}
+.hdr-mid{flex:1;display:flex;justify-content:center;}
+.search-box{
+  display:flex;align-items:center;gap:8px;
+  background:var(--s2);border:1px solid var(--b1);border-radius:10px;
+  padding:6px 12px;width:min(280px,100%);transition:all .2s;
+}
+.search-box:focus-within{border-color:var(--green);box-shadow:0 0 0 3px var(--gd);}
+.search-box input{
+  background:transparent;border:none;outline:none;
+  color:var(--tx);font-family:'Outfit',sans-serif;font-size:13px;flex:1;
+}
+.search-box input::placeholder{color:var(--mt);}
+.hdr-right{display:flex;gap:6px;}
 .hbtn{
-  background:var(--card);border:1px solid var(--border);
-  color:var(--text);padding:6px 11px;border-radius:8px;
+  background:var(--s2);border:1px solid var(--b1);color:var(--tx);
+  padding:6px 11px;border-radius:8px;
   font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;
   cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;
+  white-space:nowrap;
 }
 .hbtn:hover{border-color:var(--green);color:var(--green);}
-.hbtn.active{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.hbtn.g{background:var(--green);color:#000;border-color:var(--green);}
+.hbtn.g:hover{background:var(--green2);}
 
-/* ── LAYOUT ── */
+/* ──────── LAYOUT ──────── */
 .app{flex:1;display:flex;overflow:hidden;}
 
 /* Desktop sidebar */
 .sidebar{
-  width:62px;background:var(--surface);border-right:1px solid var(--border);
+  width:64px;background:var(--s1);border-right:1px solid var(--b1);
   display:flex;flex-direction:column;align-items:center;
-  padding:10px 0;gap:2px;flex-shrink:0;overflow-y:auto;
+  padding:10px 0;gap:1px;flex-shrink:0;overflow-y:auto;
 }
-.nb{
-  width:48px;height:48px;display:flex;flex-direction:column;
+.snb{
+  width:50px;height:50px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:2px;
-  border-radius:10px;cursor:pointer;transition:all .15s;
-  background:transparent;border:none;font-size:18px;color:var(--muted);
+  border-radius:11px;cursor:pointer;transition:all .15s;
+  background:transparent;border:none;font-size:19px;color:var(--mt);
 }
-.nb span{font-size:8px;color:var(--muted);font-family:'Outfit',sans-serif;font-weight:600;line-height:1;}
-.nb:hover{background:var(--card);}
-.nb.active{background:var(--green-dim);color:var(--green);}
-.nb.active span{color:var(--green);}
-.nb-sep{width:32px;height:1px;background:var(--border);margin:4px 0;}
+.snb span{font-size:8px;color:var(--mt);font-family:'Outfit',sans-serif;font-weight:600;}
+.snb:hover{background:var(--s2);}
+.snb.on{background:var(--gd);color:var(--green);}
+.snb.on span{color:var(--green);}
+.nsep{width:34px;height:1px;background:var(--b1);margin:4px 0;}
 
 .content{flex:1;overflow:hidden;display:flex;flex-direction:column;}
 .panel{display:none;flex:1;overflow:hidden;flex-direction:column;}
 .panel.active{display:flex;}
 
-/* ── SHARED COMPONENTS ── */
-.toolbar{
-  background:var(--surface);border-top:1px solid var(--border);
+/* ──────── SHARED ──────── */
+.tbar{
+  background:var(--s1);border-top:1px solid var(--b1);
   padding:10px 14px;
   padding-bottom:max(10px,env(safe-area-inset-bottom,10px));
   display:flex;gap:7px;flex-wrap:wrap;align-items:center;flex-shrink:0;
 }
 .btn{
   display:flex;align-items:center;gap:6px;padding:8px 13px;
-  border-radius:9px;border:1px solid var(--border);background:var(--card);
-  color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
+  border-radius:9px;border:1px solid var(--b1);background:var(--s2);
+  color:var(--tx);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
   cursor:pointer;transition:all .15s;white-space:nowrap;
 }
 .btn:hover{border-color:var(--green);color:var(--green);}
-.btn.primary{background:var(--green);color:#000;border-color:var(--green);}
-.btn.primary:hover{background:var(--green2);}
-.btn.accent{background:var(--accent);color:#fff;border-color:var(--accent);}
-.btn.danger{border-color:var(--red);color:var(--red);}
+.btn.p{background:var(--green);color:#000;border-color:var(--green);}
+.btn.p:hover{background:var(--green2);}
+.btn.b{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn.r{border-color:var(--red);color:var(--red);}
+.btn.gold{background:var(--gold);color:#000;border-color:var(--gold);}
 .btn:disabled{opacity:.3;cursor:not-allowed;}
-.no-img{
+.noimg{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:12px;color:var(--muted);text-align:center;padding:40px;flex:1;
+  gap:12px;color:var(--mt);text-align:center;padding:40px;flex:1;
 }
-.no-img-icon{font-size:44px;opacity:.2;}
-.no-img p{font-size:13px;}
+.noimg-i{font-size:44px;opacity:.18;}
+.noimg p{font-size:13px;}
 
-/* ── SCAN PANEL ── */
-.cam-box{
+/* ──────── SCAN ──────── */
+.cambox{
   flex:1;position:relative;background:#000;overflow:hidden;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
 }
-#cam-video{width:100%;height:100%;object-fit:cover;display:none;}
-#cam-snap{display:none;width:100%;height:100%;object-fit:contain;}
-
+#v{width:100%;height:100%;object-fit:cover;display:none;}
+#snapimg{display:none;width:100%;height:100%;object-fit:contain;}
 .idle{
   position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:16px;
+  align-items:center;justify-content:center;gap:18px;
 }
-.idle-icon{font-size:68px;opacity:.18;animation:flt 3s ease-in-out infinite;}
-@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-.idle-title{font-size:17px;font-weight:700;color:var(--muted);}
-.idle-sub{font-size:12px;color:var(--muted2);text-align:center;max-width:240px;line-height:1.6;}
+.idle-i{font-size:72px;opacity:.15;animation:fl 3s ease-in-out infinite;}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.idle-title{font-size:18px;font-weight:800;color:var(--mt);}
+.idle-sub{font-size:12px;color:var(--mt2);text-align:center;max-width:240px;line-height:1.6;}
 .idle-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
 .idle-btn{
-  display:flex;align-items:center;gap:7px;padding:11px 20px;border-radius:12px;
-  border:1px solid var(--border);background:var(--card2);
-  color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:7px;padding:12px 22px;border-radius:13px;
+  border:1px solid var(--b1);background:var(--s2);
+  color:var(--tx);font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;
   cursor:pointer;transition:all .2s;
 }
-.idle-btn:hover,.idle-btn:active{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+.idle-btn:hover,.idle-btn:active{border-color:var(--green);color:var(--green);background:var(--gd);}
 .idle-btn.p{background:var(--green);color:#000;border-color:var(--green);}
 .idle-btn.p:hover{background:var(--green2);}
 
-/* Detection SVG overlay */
-#det-svg{
+/* OpenCV detection overlay */
+#det-canvas{
   position:absolute;inset:0;width:100%;height:100%;
-  pointer-events:none;display:none;
+  pointer-events:none;display:none;opacity:.9;
 }
 .doc-badge{
-  position:absolute;top:10px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,.8);border:1px solid var(--green);
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.82);border:1px solid var(--green);
   color:var(--green);font-size:11px;font-weight:700;
-  padding:5px 14px;border-radius:20px;backdrop-filter:blur(8px);
-  font-family:'Outfit',sans-serif;display:none;white-space:nowrap;z-index:10;
+  padding:5px 14px;border-radius:20px;backdrop-filter:blur(10px);
+  display:none;white-space:nowrap;z-index:10;font-family:'Outfit',sans-serif;
 }
 .scanline{
   position:absolute;left:0;right:0;height:2px;
   background:linear-gradient(90deg,transparent,var(--green),transparent);
-  animation:slmove 2s linear infinite;display:none;
+  animation:slm 2s linear infinite;display:none;
 }
 .scanline.on{display:block;}
-@keyframes slmove{0%{top:10%}100%{top:90%}}
+@keyframes slm{0%{top:10%}100%{top:90%}}
+/* Batch indicator */
+.batch-badge{
+  position:absolute;top:12px;right:12px;
+  background:rgba(0,0,0,.82);border:1px solid var(--blue);
+  color:var(--blue);font-size:11px;font-weight:700;
+  padding:5px 12px;border-radius:20px;backdrop-filter:blur(10px);
+  display:none;z-index:10;font-family:'Outfit',sans-serif;
+}
+.batch-badge.on{display:block;}
+/* Flash effect */
+.flash{
+  position:absolute;inset:0;background:white;opacity:0;
+  pointer-events:none;z-index:20;transition:opacity .1s;
+}
+.flash.on{opacity:.7;}
 
-/* ── PERSPECTIVE CROP ── */
-.persp-wrap{
-  flex:1;position:relative;background:#0d0d0d;
+/* ──────── PERSPECTIVE CROP ──────── */
+.perwrap{
+  flex:1;position:relative;background:#0a0a12;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
-#persp-canvas{display:block;max-width:100%;max-height:100%;}
-/* 4 draggable corner handles */
-.corner-handle{
-  position:absolute;width:28px;height:28px;
+#pc{display:block;max-width:100%;max-height:100%;}
+/* 4 draggable handles */
+.ch{
+  position:absolute;width:30px;height:30px;
   background:var(--green);border:3px solid #fff;border-radius:50%;
   cursor:grab;transform:translate(-50%,-50%);
-  box-shadow:0 0 0 3px rgba(0,208,132,.4);
-  display:none;z-index:50;touch-action:none;
+  box-shadow:0 0 0 4px rgba(0,224,135,.3),0 4px 12px rgba(0,0,0,.4);
+  display:none;z-index:50;touch-action:none;transition:transform .1s;
 }
-.corner-handle:active{cursor:grabbing;background:var(--green2);}
-.corner-handle.show{display:block;}
-/* perspective guide lines */
-#guide-svg{
+.ch:active{cursor:grabbing;transform:translate(-50%,-50%) scale(1.2);}
+.ch.show{display:block;}
+/* Guide polygon */
+#gsvg{
   position:absolute;inset:0;width:100%;height:100%;
   pointer-events:none;z-index:40;display:none;
 }
-#guide-svg.show{display:block;}
+#gsvg.show{display:block;}
+/* Auto-detect hint */
+.persp-hint{
+  position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.8);border:1px solid var(--teal);
+  color:var(--teal);font-size:11px;font-weight:600;
+  padding:6px 14px;border-radius:20px;backdrop-filter:blur(8px);
+  font-family:'Outfit',sans-serif;white-space:nowrap;display:none;
+}
 
-/* ── EDIT PANEL ── */
-.edit-wrap{flex:1;display:flex;overflow:hidden;}
-.edit-canvas-area{
-  flex:1;background:#0d0d0d;display:flex;
+/* ──────── EDIT ──────── */
+.editwrap{flex:1;display:flex;overflow:hidden;}
+.editarea{
+  flex:1;background:#0a0a12;display:flex;
   align-items:center;justify-content:center;overflow:hidden;position:relative;
 }
-#edit-canvas{max-width:100%;max-height:100%;display:block;}
-/* annotation layer */
-#annot-canvas{
-  position:absolute;max-width:100%;max-height:100%;
-  cursor:crosshair;display:none;
+#ec{max-width:100%;max-height:100%;display:block;}
+#ac{position:absolute;max-width:100%;max-height:100%;cursor:crosshair;display:none;}
+.editside{
+  width:210px;background:var(--s1);border-left:1px solid var(--b1);
+  overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:14px;flex-shrink:0;
 }
-.edit-side{
-  width:200px;background:var(--surface);border-left:1px solid var(--border);
-  overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:13px;
-  flex-shrink:0;
-}
-.ts h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;}
+.ts h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--mt);margin-bottom:9px;}
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
-.fbtn{
-  background:var(--card);border:1px solid var(--border);
-  color:var(--muted);padding:8px 5px;border-radius:8px;
-  cursor:pointer;text-align:center;font-size:11px;font-weight:600;
-  font-family:'Outfit',sans-serif;transition:all .15s;
+.fb{
+  background:var(--s2);border:1px solid var(--b1);color:var(--mt);
+  padding:8px 5px;border-radius:8px;cursor:pointer;text-align:center;
+  font-size:11px;font-weight:600;font-family:'Outfit',sans-serif;transition:all .15s;
 }
-.fbtn:hover,.fbtn.on{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+.fb:hover,.fb.on{border-color:var(--green);color:var(--green);background:var(--gd);}
 .srow{display:flex;flex-direction:column;gap:5px;}
-.slbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);}
+.slbl{display:flex;justify-content:space-between;font-size:11px;color:var(--mt);}
 .slbl span{color:var(--green);font-family:'JetBrains Mono',monospace;}
 input[type=range]{
   width:100%;-webkit-appearance:none;height:3px;
-  background:var(--border);border-radius:2px;outline:none;
+  background:var(--b1);border-radius:2px;outline:none;
 }
 input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;width:13px;height:13px;border-radius:50%;
-  background:var(--green);cursor:pointer;
+  background:var(--green);cursor:pointer;box-shadow:0 0 6px rgba(0,224,135,.4);
 }
-/* Annotation tools */
-.annot-tools{display:flex;flex-direction:column;gap:5px;}
 .atbtn{
   display:flex;align-items:center;gap:7px;padding:7px 10px;
-  border-radius:8px;border:1px solid var(--border);background:var(--card);
+  border-radius:8px;border:1px solid var(--b1);background:var(--s2);
   cursor:pointer;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;
-  color:var(--muted);transition:all .15s;
+  color:var(--mt);transition:all .15s;
 }
-.atbtn:hover,.atbtn.on{border-color:var(--accent);color:var(--accent);background:rgba(91,127,255,.1);}
-.color-row{display:flex;gap:5px;flex-wrap:wrap;}
-.color-dot{
+.atbtn:hover,.atbtn.on{border-color:var(--blue);color:var(--blue);background:rgba(77,138,255,.1);}
+.cdots{display:flex;gap:5px;flex-wrap:wrap;}
+.cd{
   width:20px;height:20px;border-radius:50%;cursor:pointer;
-  border:2px solid transparent;transition:all .15s;
+  border:2.5px solid transparent;transition:all .15s;
 }
-.color-dot.on{border-color:#fff;transform:scale(1.15);}
-
-/* export list */
-.exp-list{display:flex;flex-direction:column;gap:5px;}
-.expbtn{
+.cd.on{border-color:#fff;transform:scale(1.2);}
+.xbtn{
   display:flex;align-items:center;gap:8px;padding:8px 10px;
-  border-radius:8px;border:1px solid var(--border);background:var(--card);
+  border-radius:9px;border:1px solid var(--b1);background:var(--s2);
   cursor:pointer;transition:all .15s;width:100%;font-family:'Outfit',sans-serif;
 }
-.expbtn:hover{border-color:var(--green);background:var(--green-dim);}
-.expbtn-i{font-size:17px;}
-.expbtn-t{text-align:left;}
-.expbtn-n{font-size:12px;font-weight:700;color:var(--text);}
-.expbtn-d{font-size:10px;color:var(--muted);}
+.xbtn:hover{border-color:var(--green);background:var(--gd);}
+.xi{font-size:17px;}
+.xt-n{font-size:12px;font-weight:700;color:var(--tx);}
+.xt-d{font-size:10px;color:var(--mt);}
 
-/* ── OCR + TRANSLATE ── */
-.ocr-wrap{flex:1;display:flex;overflow:hidden;}
-.ocr-img{
-  flex:1;background:#0d0d0d;position:relative;
+/* ──────── OCR ──────── */
+.ocrwrap{flex:1;display:flex;overflow:hidden;}
+.ocrimgside{
+  flex:1;background:#0a0a12;position:relative;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
-#ocr-canvas{max-width:100%;max-height:100%;display:block;cursor:crosshair;}
-#ocr-sel{
-  position:absolute;border:2px dashed var(--accent);
-  background:rgba(91,127,255,.07);pointer-events:none;display:none;
+#oc{max-width:100%;max-height:100%;display:block;cursor:crosshair;}
+#osel{
+  position:absolute;border:2px dashed var(--blue);
+  background:rgba(77,138,255,.07);pointer-events:none;display:none;
 }
-.ocr-hint{
+.ocrhint{
   position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,.85);border:1px solid var(--accent);
-  color:var(--accent);font-size:11px;padding:5px 13px;border-radius:20px;
+  background:rgba(0,0,0,.88);border:1px solid var(--blue);
+  color:var(--blue);font-size:11px;padding:5px 13px;border-radius:20px;
   white-space:nowrap;font-family:'Outfit',sans-serif;display:none;
 }
-.ocr-side{
-  width:290px;background:var(--surface);border-left:1px solid var(--border);
+.ocrtextside{
+  width:300px;background:var(--s1);border-left:1px solid var(--b1);
   display:flex;flex-direction:column;flex-shrink:0;
 }
-.ocr-top{padding:10px;border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;}
-.ocr-lang,.ocr-to-lang{
-  flex:1;background:var(--card);border:1px solid var(--border);
-  color:var(--text);padding:6px 8px;border-radius:7px;
-  font-family:'Outfit',sans-serif;font-size:11px;outline:none;cursor:pointer;min-width:80px;
+.ocrtop{padding:10px;border-bottom:1px solid var(--b1);display:flex;gap:6px;flex-wrap:wrap;}
+.ocrsel{
+  flex:1;background:var(--s2);border:1px solid var(--b1);color:var(--tx);
+  padding:6px 8px;border-radius:7px;font-family:'Outfit',sans-serif;
+  font-size:11px;outline:none;cursor:pointer;min-width:80px;
 }
-.ocr-tabs{display:flex;border-bottom:1px solid var(--border);}
-.ocr-tab{
-  flex:1;padding:9px;font-size:11px;font-weight:600;color:var(--muted);
-  cursor:pointer;text-align:center;border-bottom:2px solid transparent;
-  font-family:'Outfit',sans-serif;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;
+.ocrtabs{display:flex;border-bottom:1px solid var(--b1);}
+.ocrtab{
+  flex:1;padding:9px;font-size:11px;font-weight:600;color:var(--mt);
+  cursor:pointer;text-align:center;border:none;border-bottom:2px solid transparent;
+  background:none;font-family:'Outfit',sans-serif;transition:all .15s;
 }
-.ocr-tab.on{color:var(--green);border-bottom-color:var(--green);}
-.ocr-pane{display:none;flex:1;flex-direction:column;}
-.ocr-pane.on{display:flex;}
-#ocr-text,#trans-text{
+.ocrtab.on{color:var(--green);border-bottom-color:var(--green);}
+.ocrpane{display:none;flex:1;flex-direction:column;}
+.ocrpane.on{display:flex;}
+#ocrtxt,#trtxt{
   flex:1;padding:12px;background:transparent;border:none;outline:none;
-  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:12px;
   line-height:1.7;resize:none;
 }
-#trans-text{background:rgba(0,208,132,.03);}
-.ocr-bot{
-  padding:10px;border-top:1px solid var(--border);display:flex;gap:5px;
+#trtxt{background:rgba(0,224,135,.02);}
+/* Business card result */
+#bc-result{
+  padding:12px;display:none;flex-direction:column;gap:8px;
+  background:rgba(0,224,135,.03);border-top:1px solid var(--b1);
+}
+#bc-result.show{display:flex;}
+.bc-field{display:flex;align-items:center;gap:8px;font-size:12px;}
+.bc-label{color:var(--mt);font-weight:600;min-width:60px;font-size:11px;}
+.bc-val{color:var(--tx);font-family:'JetBrains Mono',monospace;}
+.ocrbot{
+  padding:10px;border-top:1px solid var(--b1);display:flex;gap:5px;
   padding-bottom:max(10px,env(safe-area-inset-bottom,10px));flex-wrap:wrap;
 }
-.obtn{
-  flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);
-  background:var(--card);color:var(--text);cursor:pointer;
+.ob{
+  flex:1;padding:7px 5px;border-radius:8px;border:1px solid var(--b1);
+  background:var(--s2);color:var(--tx);cursor:pointer;
   font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;
-  transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px;
-  min-width:50px;
+  transition:all .15s;display:flex;align-items:center;justify-content:center;gap:3px;
+  min-width:44px;
 }
-.obtn:hover{border-color:var(--green);color:var(--green);}
-.obtn.p{background:var(--green);color:#000;border-color:var(--green);}
+.ob:hover{border-color:var(--green);color:var(--green);}
+.ob.p{background:var(--green);color:#000;border-color:var(--green);}
 
-/* ── PAGES ── */
-.pages-wrap{flex:1;display:flex;overflow:hidden;}
-.pages-grid{
+/* ──────── PAGES ──────── */
+.pgwrap{flex:1;display:flex;overflow:hidden;}
+.pggrid{
   flex:1;overflow-y:auto;padding:14px;
   display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
   gap:10px;align-content:start;
 }
-.pcard{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s;
+.pgcard{
+  background:var(--s2);border:1px solid var(--b1);
+  border-radius:11px;overflow:hidden;cursor:pointer;transition:all .2s;
+  position:relative;
 }
-.pcard:hover{border-color:var(--green);transform:translateY(-2px);}
-.pcard img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;}
-.pcard-foot{padding:5px 7px;display:flex;align-items:center;justify-content:space-between;}
-.pcard-num{font-size:10px;font-weight:700;color:var(--muted);}
-.pdel{background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:12px;}
-.pdel:hover{color:var(--red);}
-.pages-empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:60px 20px;}
-.pages-empty .pe-i{font-size:40px;opacity:.2;margin-bottom:12px;}
-.pages-side{
-  width:195px;background:var(--surface);border-left:1px solid var(--border);
-  padding:13px 11px;display:flex;flex-direction:column;gap:8px;
-  flex-shrink:0;overflow-y:auto;
+.pgcard:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3);}
+.pgcard img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;}
+.pgcard-foot{padding:5px 8px;display:flex;align-items:center;justify-content:space-between;}
+.pgnum{font-size:10px;font-weight:700;color:var(--mt);}
+.pgdel{background:transparent;border:none;cursor:pointer;color:var(--mt);font-size:12px;padding:2px;}
+.pgdel:hover{color:var(--red);}
+.pg-empty{grid-column:1/-1;text-align:center;color:var(--mt);padding:60px 20px;}
+.pgsid{
+  width:200px;background:var(--s1);border-left:1px solid var(--b1);
+  padding:13px 12px;display:flex;flex-direction:column;gap:9px;flex-shrink:0;overflow-y:auto;
 }
-.ps-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.pst{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mt);}
 
-/* ── TOOLS PANEL ── */
-.tools-grid{
-  flex:1;overflow-y:auto;padding:16px;
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));
-  gap:10px;align-content:start;
+/* ──────── FOLDERS ──────── */
+.fdwrap{flex:1;display:flex;overflow:hidden;}
+.fdsid{
+  width:185px;background:var(--s1);border-right:1px solid var(--b1);
+  padding:12px;display:flex;flex-direction:column;gap:5px;flex-shrink:0;overflow-y:auto;
 }
-.tool-card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:12px;padding:14px 10px;cursor:pointer;
-  text-align:center;transition:all .2s;display:flex;
-  flex-direction:column;align-items:center;gap:7px;
-}
-.tool-card:hover{border-color:var(--green);background:var(--green-dim);transform:translateY(-2px);}
-.tool-icon{font-size:26px;}
-.tool-name{font-size:11px;font-weight:700;color:var(--text);line-height:1.3;}
-.tool-cat{font-size:9px;color:var(--muted);}
-
-/* ── FOLDERS ── */
-.folders-wrap{flex:1;display:flex;overflow:hidden;}
-.folders-side{
-  width:180px;background:var(--surface);border-right:1px solid var(--border);
-  padding:12px;display:flex;flex-direction:column;gap:6px;flex-shrink:0;overflow-y:auto;
-}
-.folder-item{
+.fitem{
   display:flex;align-items:center;gap:8px;padding:8px 10px;
   border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;
-  color:var(--muted);transition:all .15s;border:1px solid transparent;
+  color:var(--mt);transition:all .15s;border:1px solid transparent;
 }
-.folder-item:hover,.folder-item.on{
-  background:var(--card);color:var(--text);border-color:var(--border);
-}
-.folder-item.on{color:var(--green);border-color:var(--green-dim);}
-.folder-icon{font-size:16px;}
-.folders-content{
+.fitem:hover,.fitem.on{background:var(--s2);color:var(--tx);border-color:var(--b1);}
+.fitem.on{color:var(--green);border-color:rgba(0,224,135,.2);}
+.fdcontent{
   flex:1;overflow-y:auto;padding:14px;
   display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
   gap:10px;align-content:start;
 }
-.fitem{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s;
+.ditem{
+  background:var(--s2);border:1px solid var(--b1);
+  border-radius:11px;overflow:hidden;cursor:pointer;transition:all .2s;
 }
-.fitem:hover{border-color:var(--green);transform:translateY(-2px);}
-.fitem img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;}
-.fitem-foot{padding:6px 8px;display:flex;align-items:center;justify-content:space-between;}
-.fitem-name{font-size:11px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.fitem-date{font-size:9px;color:var(--muted);}
+.ditem:hover{border-color:var(--green);transform:translateY(-2px);}
+.ditem img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;}
+.ditem-foot{padding:6px 8px;}
+.ditem-name{font-size:11px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ditem-meta{font-size:9px;color:var(--mt);margin-top:1px;}
+/* Tags */
+.dtag{
+  display:inline-block;font-size:9px;padding:2px 6px;border-radius:4px;
+  background:rgba(77,138,255,.15);color:var(--blue);margin-right:3px;font-weight:600;
+}
 
-/* ── WATERMARK MODAL ── */
-.modal{
-  position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:1000;
-  display:none;align-items:center;justify-content:center;
+/* ──────── TOOLS ──────── */
+.toolswrap{flex:1;overflow-y:auto;padding:16px;}
+.tools-cat-title{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--mt);margin-bottom:10px;margin-top:16px;padding-left:2px;
 }
-.modal.open{display:flex;}
-.modal-box{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:16px;padding:22px;width:380px;max-width:94vw;
+.tools-cat-title:first-child{margin-top:0;}
+.toolsgrid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));
+  gap:9px;margin-bottom:6px;
 }
-.modal-box h3{font-size:15px;font-weight:700;margin-bottom:14px;}
-.mrow{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
-.mrow label{font-size:11px;color:var(--muted);font-weight:600;}
+.tc{
+  background:var(--s2);border:1px solid var(--b1);
+  border-radius:12px;padding:14px 10px;cursor:pointer;
+  text-align:center;transition:all .2s;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.tc:hover{border-color:var(--green);background:var(--gd);transform:translateY(-2px);box-shadow:var(--sh);}
+.tcicon{font-size:24px;}
+.tcname{font-size:11px;font-weight:700;color:var(--tx);line-height:1.3;}
+
+/* ──────── SECURITY ──────── */
+.secwrap{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;}
+.sec-card{background:var(--s2);border:1px solid var(--b1);border-radius:13px;padding:16px;}
+.sec-card h3{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.sec-row{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.sec-row label{font-size:11px;font-weight:600;color:var(--mt);}
 .minput{
-  background:var(--card);border:1px solid var(--border);
-  color:var(--text);padding:8px 12px;border-radius:8px;
-  font-family:'Outfit',sans-serif;font-size:13px;outline:none;width:100%;
+  background:var(--s1);border:1px solid var(--b1);color:var(--tx);
+  padding:9px 12px;border-radius:9px;font-family:'Outfit',sans-serif;
+  font-size:13px;outline:none;width:100%;transition:border-color .15s;
 }
 .minput:focus{border-color:var(--green);}
-.mactions{display:flex;gap:8px;margin-top:14px;}
 
-/* Sign pad */
-#draw-canvas{
-  width:100%;height:140px;background:white;border-radius:8px;
+/* ──────── MODALS ──────── */
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;
+  display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.modal.open{display:flex;}
+.mbox{
+  background:var(--s1);border:1px solid var(--b1);
+  border-radius:17px;padding:22px;width:400px;max-width:94vw;
+  box-shadow:var(--sh);
+}
+.mbox h3{font-size:15px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mrow{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.mrow label{font-size:11px;font-weight:600;color:var(--mt);}
+.macts{display:flex;gap:8px;margin-top:14px;}
+#draw-c{
+  width:100%;height:140px;background:white;border-radius:9px;
   display:block;cursor:crosshair;touch-action:none;
 }
+/* QR modal */
+#qr-box{display:flex;justify-content:center;padding:16px;}
+.share-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.sbtn{
+  flex:1;min-width:80px;padding:9px;border-radius:9px;border:1px solid var(--b1);
+  background:var(--s2);color:var(--tx);cursor:pointer;
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
+  text-align:center;transition:all .15s;
+}
+.sbtn:hover{border-color:var(--green);color:var(--green);}
 
-/* ── PROGRESS ── */
+/* ──────── PROGRESS ──────── */
 .prog{
-  position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;
-  display:none;align-items:center;justify-content:center;
+  position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:2000;
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);
 }
 .prog.open{display:flex;}
-.prog-box{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:16px;padding:28px 32px;width:300px;text-align:center;
+.progbox{
+  background:var(--s1);border:1px solid var(--b1);
+  border-radius:17px;padding:30px 36px;width:310px;text-align:center;
+  box-shadow:var(--sh);
 }
-.prog-box h3{font-size:15px;font-weight:700;margin-bottom:5px;}
-.prog-box p{font-size:12px;color:var(--muted);margin-bottom:14px;}
-.prog-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--green2));width:0%;transition:width .3s;}
-.prog-pct{font-size:12px;color:var(--green);font-family:'JetBrains Mono',monospace;margin-top:7px;}
+.progbox h3{font-size:15px;font-weight:800;margin-bottom:5px;}
+.progbox p{font-size:12px;color:var(--mt);margin-bottom:16px;}
+.pbar{height:5px;background:var(--b1);border-radius:3px;overflow:hidden;}
+.pfill{height:100%;background:linear-gradient(90deg,var(--green),var(--green2));width:0%;transition:width .3s;}
+.ppct{font-size:12px;color:var(--green);font-family:'JetBrains Mono',monospace;margin-top:8px;}
 
-/* ── TOAST ── */
+/* ──────── TOAST ──────── */
 .toast{
-  position:fixed;bottom:75px;left:50%;transform:translateX(-50%) translateY(30px);
-  background:var(--card2);border:1px solid var(--border);
-  color:var(--text);padding:10px 18px;border-radius:10px;
-  font-size:13px;font-weight:600;z-index:3000;
-  transition:all .25s;white-space:nowrap;
-  box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;
+  position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(30px);
+  background:var(--s2);border:1px solid var(--b1);color:var(--tx);
+  padding:10px 18px;border-radius:11px;font-size:13px;font-weight:600;
+  z-index:3000;transition:all .25s;white-space:nowrap;
+  box-shadow:var(--sh);opacity:0;
 }
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 .toast.ok{border-color:var(--green);color:var(--green);}
 .toast.err{border-color:var(--red);color:var(--red);}
-.toast.info{border-color:var(--accent);color:var(--accent);}
+.toast.info{border-color:var(--blue);color:var(--blue);}
 
-/* ── BOTTOM NAV mobile ── */
+/* ──────── BOTTOM NAV mobile ──────── */
 .bnav{
-  display:none;background:var(--surface);border-top:1px solid var(--border);
+  display:none;background:var(--s1);border-top:1px solid var(--b1);
   padding:5px 0;padding-bottom:max(5px,env(safe-area-inset-bottom,5px));
   flex-shrink:0;z-index:100;
 }
-.bnav-inner{display:flex;justify-content:space-around;}
-.bnavbtn{
+.bnav-row{display:flex;justify-content:space-around;}
+.bnb{
   display:flex;flex-direction:column;align-items:center;gap:2px;
   padding:5px 8px;border-radius:9px;cursor:pointer;
-  background:transparent;border:none;color:var(--muted);
-  font-family:'Outfit',sans-serif;min-width:46px;transition:all .15s;
+  background:transparent;border:none;color:var(--mt);
+  font-family:'Outfit',sans-serif;min-width:45px;transition:all .15s;
 }
-.bni{font-size:19px;}
-.bnl{font-size:8px;font-weight:600;}
-.bnavbtn.active{color:var(--green);}
+.bni{font-size:19px;}.bnl{font-size:8px;font-weight:600;}
+.bnb.on{color:var(--green);}
+
+/* ──────── SESSION STRIP ──────── */
+.session-strip{
+  background:var(--s1);border-bottom:1px solid var(--b1);
+  padding:8px 14px;display:flex;align-items:center;gap:10px;
+  flex-shrink:0;overflow-x:auto;min-height:72px;
+  scrollbar-width:thin;scrollbar-color:var(--b2) transparent;
+}
+.session-strip::-webkit-scrollbar{height:3px;}
+.session-strip::-webkit-scrollbar-thumb{background:var(--b2);}
+.sess-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mt);white-space:nowrap;flex-shrink:0;}
+.sess-cards{display:flex;gap:8px;flex:1;overflow-x:auto;}
+.sess-card{
+  position:relative;flex-shrink:0;width:46px;height:56px;
+  border-radius:8px;overflow:hidden;cursor:pointer;
+  border:2px solid var(--b1);transition:all .2s;
+}
+.sess-card:hover{border-color:var(--green);transform:translateY(-2px);}
+.sess-card.active{border-color:var(--green);box-shadow:0 0 0 2px rgba(0,224,135,.25);}
+.sess-card img{width:100%;height:100%;object-fit:cover;display:block;}
+.sess-card .sc-num{
+  position:absolute;bottom:2px;left:0;right:0;
+  text-align:center;font-size:8px;font-weight:700;
+  background:rgba(0,0,0,.7);color:var(--tx);padding:1px 0;
+}
+.sess-card .sc-del{
+  position:absolute;top:2px;right:2px;
+  background:rgba(0,0,0,.75);color:var(--red);
+  border:none;border-radius:50%;width:14px;height:14px;
+  font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .15s;
+}
+.sess-card:hover .sc-del{opacity:1;}
+.sess-add-btn{
+  flex-shrink:0;width:46px;height:56px;
+  border-radius:8px;border:2px dashed var(--b2);
+  background:transparent;color:var(--mt);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;cursor:pointer;font-size:18px;transition:all .2s;
+}
+.sess-add-btn:hover{border-color:var(--green);color:var(--green);}
+.sess-add-btn span{font-size:8px;font-weight:600;font-family:'Outfit',sans-serif;}
+.sess-name{
+  display:flex;align-items:center;gap:6px;
+  background:var(--s2);border:1px solid var(--b1);
+  border-radius:8px;padding:4px 10px;cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+}
+.sess-name:hover{border-color:var(--green);}
+.sess-name-txt{font-size:12px;font-weight:700;color:var(--tx);}
+.sess-name-edit{font-size:11px;color:var(--mt);}
+
+/* ──────── RENAME MODAL ──────── */
+.rename-info{font-size:11px;color:var(--mt);margin-bottom:10px;line-height:1.6;}
+
+/* OpenCV loading indicator */
+.opencv-status{
+  position:fixed;bottom:80px;right:16px;
+  background:var(--s2);border:1px solid var(--b2);
+  color:var(--mt);font-size:10px;padding:5px 10px;border-radius:8px;
+  font-family:'JetBrains Mono',monospace;z-index:500;
+}
+.opencv-status.ready{border-color:var(--green);color:var(--green);}
 
 ::-webkit-scrollbar{width:3px;}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
 
 @media(max-width:640px){
-  .sidebar{display:none;}
-  .bnav{display:block;}
-  .edit-side,.pages-side{width:145px;}
-  .ocr-side{width:140px;}
-  .folders-side{width:140px;}
-  .toast{bottom:68px;}
+  .sidebar{display:none;}.bnav{display:block;}
+  .editside,.pgsid{width:148px;}.ocrtextside{width:145px;}.fdsid{width:140px;}
+  .hdr-mid{display:none;}.toast{bottom:70px;}
 }
 </style>
 </head>
 <body>
 
+<!-- OpenCV status -->
+<div class="opencv-status" id="cv-status">⏳ OpenCV...</div>
+
 <!-- HEADER -->
 <div class="hdr">
   <div class="logo">
-    <div class="logo-mark">📷</div>
-    <div class="logo-name">Scan<span>Pro</span></div>
+    <div class="lmark">📷</div>
+    <div class="lname">Scan<span>Pro</span></div>
+  </div>
+  <div class="hdr-mid">
+    <div class="search-box">
+      <span style="color:var(--mt);font-size:14px">🔍</span>
+      <input id="search-in" placeholder="Rechercher dans les documents..." oninput="searchDocs(this.value)">
+    </div>
   </div>
   <div class="hdr-right">
-    <button class="hbtn" onclick="addToPages()">➕ Page</button>
+    <button class="hbtn" onclick="openShare()">📤 Partager</button>
+    <button class="hbtn g" onclick="addToPages()">➕ Page</button>
     <button class="hbtn" onclick="goPanel('pages')">📑 <span id="pg-n">0</span></button>
-    <button class="hbtn" onclick="openWatermark()">🔒 Filigrane</button>
   </div>
 </div>
 
 <div class="app">
+  <!-- SESSION STRIP (multi-capture manager) -->
+  <div style="display:none" id="session-strip-wrap"><!-- injected into scan panel --></div>
   <!-- Desktop sidebar -->
   <div class="sidebar">
-    <button class="nb active" id="nb-scan" onclick="goPanel('scan')">📷<span>Scan</span></button>
-    <button class="nb" id="nb-crop" onclick="goPanel('crop')">✂️<span>Recadrer</span></button>
-    <button class="nb" id="nb-edit" onclick="goPanel('edit')">🎨<span>Éditer</span></button>
-    <button class="nb" id="nb-ocr" onclick="goPanel('ocr')">🧠<span>OCR</span></button>
-    <div class="nb-sep"></div>
-    <button class="nb" id="nb-pages" onclick="goPanel('pages')">📑<span>Pages</span></button>
-    <button class="nb" id="nb-folders" onclick="goPanel('folders')">📁<span>Docs</span></button>
-    <button class="nb" id="nb-tools" onclick="goPanel('tools')">🔧<span>Outils</span></button>
-    <button class="nb" id="nb-sign" onclick="goPanel('sign')">✍️<span>Signer</span></button>
+    <button class="snb on" id="snb-scan" onclick="goPanel('scan')">📷<span>Scan</span></button>
+    <button class="snb" id="snb-crop" onclick="goPanel('crop')">✂️<span>Recadrer</span></button>
+    <button class="snb" id="snb-edit" onclick="goPanel('edit')">🎨<span>Éditer</span></button>
+    <button class="snb" id="snb-ocr" onclick="goPanel('ocr')">🧠<span>OCR</span></button>
+    <div class="nsep"></div>
+    <button class="snb" id="snb-pages" onclick="goPanel('pages')">📑<span>Pages</span></button>
+    <button class="snb" id="snb-folders" onclick="goPanel('folders')">📁<span>Docs</span></button>
+    <button class="snb" id="snb-tools" onclick="goPanel('tools')">🔧<span>Outils</span></button>
+    <button class="snb" id="snb-security" onclick="goPanel('security')">🔒<span>Sécurité</span></button>
   </div>
 
   <div class="content">
 
     <!-- ═══ SCAN ═══ -->
     <div class="panel active" id="panel-scan">
-      <div class="cam-box" id="cam-box" onclick="camClick()">
-        <video id="cam-video" autoplay playsinline></video>
-        <img id="cam-snap" alt="">
-        <canvas id="cam-canvas" style="display:none"></canvas>
+      <!-- SESSION STRIP -->
+      <div class="session-strip" id="sess-strip">
+        <div class="sess-label">Session</div>
+        <div class="sess-name" onclick="openRename()" title="Renommer le document">
+          <span class="sess-name-txt" id="sess-doc-name">Document_1</span>
+          <span class="sess-name-edit">✏️</span>
+        </div>
+        <div class="sess-cards" id="sess-cards"></div>
+        <button class="sess-add-btn" onclick="addCaptureToSession()" title="Ajouter une capture à ce document">
+          ➕<span>Ajouter</span>
+        </button>
+        <button class="btn" onclick="newSession()" title="Nouveau document">📄 Nouveau</button>
+      </div>
+      <div class="cambox" id="cambox" onclick="camClick()">
+        <video id="v" autoplay playsinline></video>
+        <img id="snapimg" alt="">
+        <canvas id="cam-c" style="display:none"></canvas>
+        <canvas id="det-canvas"></canvas>
         <div class="idle" id="idle">
-          <div class="idle-icon">📷</div>
+          <div class="idle-i">📷</div>
           <div class="idle-title">Prêt à scanner</div>
-          <div class="idle-sub">Touchez pour activer la caméra</div>
+          <div class="idle-sub">Touchez pour activer la caméra ou importez une image</div>
           <div class="idle-btns">
             <button class="idle-btn p" onclick="startCam();event.stopPropagation()">📷 Caméra</button>
-            <button class="idle-btn" onclick="triggerUpload();event.stopPropagation()">🖼️ Importer</button>
+            <button class="idle-btn" onclick="triggerUp();event.stopPropagation()">🖼️ Importer</button>
+            <button class="idle-btn" onclick="startBatch();event.stopPropagation()">📋 Batch</button>
           </div>
         </div>
-        <svg id="det-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <rect id="det-rect" x="8" y="8" width="84" height="84" fill="none" stroke="#00d084" stroke-width="0.6" stroke-dasharray="2.5,2"/>
-          <circle id="c-tl" cx="8" cy="8" r="1.8" fill="#00d084"/>
-          <circle id="c-tr" cx="92" cy="8" r="1.8" fill="#00d084"/>
-          <circle id="c-bl" cx="8" cy="92" r="1.8" fill="#00d084"/>
-          <circle id="c-br" cx="92" cy="92" r="1.8" fill="#00d084"/>
-        </svg>
         <div class="doc-badge" id="doc-badge"></div>
         <div class="scanline" id="scanline"></div>
+        <div class="batch-badge" id="batch-badge">📋 Batch: 0</div>
+        <div class="flash" id="flash"></div>
       </div>
       <input type="file" id="file-in" accept="image/*" style="display:none" onchange="loadFile(event)">
-      <div class="toolbar">
-        <div style="display:flex;gap:7px;flex:1">
+      <input type="file" id="batch-in" accept="image/*" multiple style="display:none" onchange="loadBatch(event)">
+      <div class="tbar">
+        <div style="display:flex;gap:7px;flex:1;">
           <button class="btn" onclick="startCam()">📷 Caméra</button>
-          <button class="btn" onclick="triggerUpload()">🖼️ Importer</button>
+          <button class="btn" onclick="triggerUp()">🖼️ Import</button>
+          <button class="btn b" onclick="document.getElementById('batch-in').click()">📋 Batch</button>
         </div>
-        <button class="btn primary" id="btn-cap" onclick="doCapture()" disabled>⚡ Capturer</button>
-        <div style="display:flex;gap:7px;">
-          <button class="btn" onclick="flipCam()">🔄</button>
-        </div>
+        <button class="btn p" id="btn-cap" onclick="doCapture()" disabled>⚡ Capturer</button>
+        <button class="btn" onclick="flipCam()">🔄</button>
       </div>
     </div>
 
     <!-- ═══ PERSPECTIVE CROP ═══ -->
     <div class="panel" id="panel-crop">
-      <div class="persp-wrap" id="persp-wrap">
-        <div class="no-img" id="crop-empty"><div class="no-img-icon">✂️</div><p>Scannez d'abord</p></div>
-        <canvas id="persp-canvas"></canvas>
-        <!-- 4 draggable corner handles -->
-        <div class="corner-handle" id="h0" data-i="0"></div>
-        <div class="corner-handle" id="h1" data-i="1"></div>
-        <div class="corner-handle" id="h2" data-i="2"></div>
-        <div class="corner-handle" id="h3" data-i="3"></div>
-        <svg id="guide-svg"><polygon id="guide-poly" fill="rgba(0,208,132,0.07)" stroke="#00d084" stroke-width="1.5" stroke-dasharray="5,3"/></svg>
+      <div class="perwrap" id="perwrap">
+        <div class="noimg" id="crop-e"><div class="noimg-i">✂️</div><p>Scannez d'abord</p></div>
+        <canvas id="pc"></canvas>
+        <!-- 4 handles: TL=0 TR=1 BL=2 BR=3 -->
+        <div class="ch" id="h0"></div>
+        <div class="ch" id="h1"></div>
+        <div class="ch" id="h2"></div>
+        <div class="ch" id="h3"></div>
+        <svg id="gsvg" viewBox="0 0 100 100"><polygon id="gpoly" fill="rgba(0,224,135,.06)" stroke="#00e087" stroke-width="1.5" stroke-dasharray="5,3" fill-rule="evenodd"/></svg>
+        <div class="persp-hint" id="persp-hint">✦ OpenCV: document détecté automatiquement</div>
       </div>
-      <div class="toolbar">
-        <span style="font-size:11px;color:var(--muted);font-weight:600;">Format :</span>
-        <button class="btn" onclick="setCornerPreset('free')">Libre</button>
-        <button class="btn" onclick="setCornerPreset('a4')">A4</button>
-        <button class="btn" onclick="setCornerPreset('id')">CNI</button>
-        <button class="btn" onclick="setCornerPreset('passport')">Passeport</button>
-        <button class="btn" onclick="setCornerPreset('photo4')">4×4</button>
-        <button class="btn" onclick="setCornerPreset('visa')">Visa</button>
-        <button class="btn primary" onclick="applyPerspective()">✅ Recadrer</button>
+      <div class="tbar">
+        <span style="font-size:11px;color:var(--mt);font-weight:600;">Format :</span>
+        <button class="btn" onclick="setPreset('free')">Libre</button>
+        <button class="btn" onclick="setPreset('a4')">A4</button>
+        <button class="btn" onclick="setPreset('a3')">A3</button>
+        <button class="btn" onclick="setPreset('id')">CNI</button>
+        <button class="btn" onclick="setPreset('pass')">Passeport</button>
+        <button class="btn" onclick="setPreset('p4x4')">4×4</button>
+        <button class="btn" onclick="setPreset('visa')">Visa</button>
+        <button class="btn p" onclick="applyCrop()">✅ Recadrer</button>
+        <button class="btn b" onclick="autoDetectDoc()">🔍 Auto-détecter</button>
       </div>
     </div>
 
     <!-- ═══ EDIT ═══ -->
     <div class="panel" id="panel-edit">
-      <div class="edit-wrap">
-        <div class="edit-canvas-area">
-          <div class="no-img" id="edit-empty"><div class="no-img-icon">🎨</div><p>Scannez d'abord</p></div>
-          <canvas id="edit-canvas"></canvas>
-          <canvas id="annot-canvas"></canvas>
+      <div class="editwrap">
+        <div class="editarea">
+          <div class="noimg" id="edit-e"><div class="noimg-i">🎨</div><p>Scannez d'abord</p></div>
+          <canvas id="ec"></canvas>
+          <canvas id="ac"></canvas>
         </div>
-        <div class="edit-side">
+        <div class="editside">
 
           <div class="ts">
-            <h4>🎨 Filtres</h4>
+            <h4>🎨 Filtres IA</h4>
             <div class="fgrid">
-              <button class="fbtn on" onclick="setFilt('orig',this)">Original</button>
-              <button class="fbtn" onclick="setFilt('bw',this)">N&B</button>
-              <button class="fbtn" onclick="setFilt('magic',this)">✨ Magic</button>
-              <button class="fbtn" onclick="setFilt('gray',this)">Gris</button>
-              <button class="fbtn" onclick="setFilt('sharp',this)">Net</button>
-              <button class="fbtn" onclick="setFilt('warm',this)">Chaud</button>
+              <button class="fb on" onclick="setF('orig',this)">Original</button>
+              <button class="fb" onclick="setF('magic',this)">✨ Magic</button>
+              <button class="fb" onclick="setF('bw',this)">N&B net</button>
+              <button class="fb" onclick="setF('gray',this)">Gris</button>
+              <button class="fb" onclick="setF('warm',this)">Chaud</button>
+              <button class="fb" onclick="setF('cold',this)">Froid</button>
+              <button class="fb" onclick="setF('sharp',this)">Net++</button>
+              <button class="fb" onclick="setF('denoise',this)">🔇 Bruit</button>
             </div>
           </div>
 
           <div class="ts">
             <h4>⚙️ Réglages</h4>
             <div style="display:flex;flex-direction:column;gap:9px;">
-              <div class="srow"><div class="slbl">Luminosité <span id="vb">0</span></div><input type="range" min="-100" max="100" value="0" oninput="setAdj('br',this.value,'vb')"></div>
-              <div class="srow"><div class="slbl">Contraste <span id="vc">0</span></div><input type="range" min="-100" max="100" value="0" oninput="setAdj('co',this.value,'vc')"></div>
-              <div class="srow"><div class="slbl">Netteté <span id="vs">0</span></div><input type="range" min="0" max="5" value="0" step="0.5" oninput="setAdj('sh',this.value,'vs')"></div>
-              <div class="srow"><div class="slbl">Rotation <span id="vr">0°</span></div><input type="range" min="-180" max="180" value="0" oninput="setAdj('ro',this.value,'vr',true)"></div>
+              <div class="srow"><div class="slbl">Luminosité <span id="vb">0</span></div><input type="range" id="sl-br" min="-100" max="100" value="0" oninput="sa('br',this.value,'vb')"></div>
+              <div class="srow"><div class="slbl">Contraste <span id="vc">0</span></div><input type="range" id="sl-co" min="-100" max="100" value="0" oninput="sa('co',this.value,'vc')"></div>
+              <div class="srow"><div class="slbl">Saturation <span id="vsat">0</span></div><input type="range" id="sl-sat" min="-100" max="100" value="0" oninput="sa('sat',this.value,'vsat')"></div>
+              <div class="srow"><div class="slbl">Netteté <span id="vsh">0</span></div><input type="range" id="sl-sh" min="0" max="5" value="0" step=".5" oninput="sa('sh',this.value,'vsh')"></div>
+              <div class="srow"><div class="slbl">Rotation <span id="vro">0°</span></div><input type="range" id="sl-ro" min="-180" max="180" value="0" oninput="sa('ro',this.value,'vro',true)"></div>
             </div>
           </div>
 
           <div class="ts">
             <h4>✏️ Annotations</h4>
-            <div class="annot-tools">
-              <button class="atbtn" id="at-pen" onclick="setAnnot('pen')">✏️ Stylo libre</button>
-              <button class="atbtn" id="at-hl" onclick="setAnnot('hl')">🖊️ Surlignage</button>
-              <button class="atbtn" id="at-rect" onclick="setAnnot('rect')">⬜ Rectangle</button>
-              <button class="atbtn" id="at-text" onclick="setAnnot('txt')">T Texte</button>
-              <button class="atbtn" id="at-arrow" onclick="setAnnot('arrow')">➡️ Flèche</button>
-              <button class="atbtn danger" onclick="clearAnnot()">🗑️ Effacer tout</button>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <button class="atbtn" id="at-pen" onclick="setAnnot('pen',this)">✏️ Stylo</button>
+              <button class="atbtn" id="at-hl" onclick="setAnnot('hl',this)">🖊️ Surlignage</button>
+              <button class="atbtn" id="at-rect" onclick="setAnnot('rect',this)">⬜ Rectangle</button>
+              <button class="atbtn" id="at-arrow" onclick="setAnnot('arrow',this)">➡️ Flèche</button>
+              <button class="atbtn" id="at-txt" onclick="setAnnot('txt',this)">T Texte</button>
+              <button class="atbtn" style="color:var(--red);border-color:var(--red)" onclick="clearAnnot()">🗑️ Effacer tout</button>
             </div>
-            <div class="color-row" style="margin-top:8px;" id="color-row">
-              <div class="color-dot on" style="background:#ff4f6a" data-c="#ff4f6a" onclick="setAnnotColor(this)"></div>
-              <div class="color-dot" style="background:#ffd060" data-c="#ffd060" onclick="setAnnotColor(this)"></div>
-              <div class="color-dot" style="background:#00d084" data-c="#00d084" onclick="setAnnotColor(this)"></div>
-              <div class="color-dot" style="background:#5b7fff" data-c="#5b7fff" onclick="setAnnotColor(this)"></div>
-              <div class="color-dot" style="background:#fff" data-c="#fff" onclick="setAnnotColor(this)"></div>
+            <div class="cdots" style="margin-top:8px;" id="cdots">
+              <div class="cd on" style="background:#ff4466" data-c="#ff4466" onclick="setAC(this)"></div>
+              <div class="cd" style="background:#ffcc44" data-c="#ffcc44" onclick="setAC(this)"></div>
+              <div class="cd" style="background:#00e087" data-c="#00e087" onclick="setAC(this)"></div>
+              <div class="cd" style="background:#4d8aff" data-c="#4d8aff" onclick="setAC(this)"></div>
+              <div class="cd" style="background:#9b5fff" data-c="#9b5fff" onclick="setAC(this)"></div>
+              <div class="cd" style="background:#fff" data-c="#fff" onclick="setAC(this)"></div>
             </div>
-            <div class="srow" style="margin-top:6px;"><div class="slbl">Épaisseur <span id="vw">3</span></div><input type="range" min="1" max="20" value="3" oninput="annotW=parseInt(this.value);document.getElementById('vw').textContent=this.value"></div>
+            <div class="srow" style="margin-top:7px;"><div class="slbl">Épaisseur <span id="vw">3</span></div><input type="range" min="1" max="20" value="3" oninput="annotW=+this.value;document.getElementById('vw').textContent=this.value"></div>
+          </div>
+
+          <div class="ts">
+            <h4>🔒 Filigrane</h4>
+            <input class="minput" style="margin-bottom:7px" id="wm-txt" value="CONFIDENTIEL" placeholder="Texte filigrane">
+            <div class="srow"><div class="slbl">Opacité <span id="vwm">30%</span></div><input type="range" min="5" max="80" value="30" oninput="wmOp=this.value/100;document.getElementById('vwm').textContent=this.value+'%'"></div>
+            <button class="btn p" style="width:100%;justify-content:center;margin-top:7px" onclick="applyWM()">✅ Appliquer</button>
           </div>
 
           <div class="ts">
             <h4>💾 Exporter</h4>
-            <div class="exp-list">
-              <button class="expbtn" onclick="exportImg('pdf')"><span class="expbtn-i">📄</span><div class="expbtn-t"><div class="expbtn-n">PDF</div><div class="expbtn-d">Document</div></div></button>
-              <button class="expbtn" onclick="exportImg('png')"><span class="expbtn-i">🖼️</span><div class="expbtn-t"><div class="expbtn-n">PNG</div><div class="expbtn-d">Sans perte</div></div></button>
-              <button class="expbtn" onclick="exportImg('jpeg')"><span class="expbtn-i">📸</span><div class="expbtn-t"><div class="expbtn-n">JPEG</div><div class="expbtn-d">Compressé</div></div></button>
-              <button class="expbtn" onclick="addToPages()"><span class="expbtn-i">➕</span><div class="expbtn-t"><div class="expbtn-n">Ajouter</div><div class="expbtn-d">Aux pages</div></div></button>
-              <button class="expbtn" onclick="saveToFolder()"><span class="expbtn-i">📁</span><div class="expbtn-t"><div class="expbtn-n">Enregistrer</div><div class="expbtn-d">Dans un dossier</div></div></button>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <button class="xbtn" onclick="askExport('pdf')"><span class="xi">📄</span><div><div class="xt-n">PDF</div><div class="xt-d">Document</div></div></button>
+              <button class="xbtn" onclick="askExport('png')"><span class="xi">🖼️</span><div><div class="xt-n">PNG</div><div class="xt-d">Sans perte</div></div></button>
+              <button class="xbtn" onclick="askExport('jpeg')"><span class="xi">📸</span><div><div class="xt-n">JPEG</div><div class="xt-d">Compressé</div></div></button>
+              <button class="xbtn" onclick="addToPages()"><span class="xi">➕</span><div><div class="xt-n">Pages</div><div class="xt-d">Multi-pages</div></div></button>
+              <button class="xbtn" onclick="saveToFolder()"><span class="xi">📁</span><div><div class="xt-n">Dossier</div><div class="xt-d">Enregistrer</div></div></button>
+              <button class="xbtn" onclick="openShare()"><span class="xi">📤</span><div><div class="xt-n">Partager</div><div class="xt-d">QR / Lien</div></div></button>
             </div>
           </div>
 
@@ -614,50 +777,60 @@ input[type=range]::-webkit-slider-thumb{
       </div>
     </div>
 
-    <!-- ═══ OCR + TRANSLATE ═══ -->
+    <!-- ═══ OCR ═══ -->
     <div class="panel" id="panel-ocr">
-      <div class="ocr-wrap">
-        <div class="ocr-img" id="ocr-img-wrap">
-          <div class="no-img" id="ocr-empty"><div class="no-img-icon">🧠</div><p>Scannez d'abord</p></div>
-          <canvas id="ocr-canvas"></canvas>
-          <div id="ocr-sel"></div>
-          <div class="ocr-hint" id="ocr-hint">✦ Glissez pour sélectionner une zone</div>
+      <div class="ocrwrap">
+        <div class="ocrimgside" id="ocrside">
+          <div class="noimg" id="ocr-e"><div class="noimg-i">🧠</div><p>Scannez d'abord</p></div>
+          <canvas id="oc"></canvas>
+          <div id="osel"></div>
+          <div class="ocrhint" id="ocrhint">✦ Glissez pour sélectionner une zone précise</div>
         </div>
-        <div class="ocr-side">
-          <div class="ocr-top">
-            <select class="ocr-lang" id="ocr-lang">
+        <div class="ocrtextside">
+          <div class="ocrtop">
+            <select class="ocrsel" id="ocr-lang">
               <option value="fra">🇫🇷 Français</option>
               <option value="eng">🇬🇧 English</option>
               <option value="ara">🇸🇦 Arabe</option>
               <option value="por">🇧🇷 Portugais</option>
               <option value="spa">🇪🇸 Español</option>
               <option value="deu">🇩🇪 Deutsch</option>
+              <option value="chi_sim">🇨🇳 Chinois</option>
             </select>
-            <select class="ocr-to-lang" id="trans-to">
-              <option value="en">→ 🇬🇧</option>
-              <option value="fr">→ 🇫🇷</option>
-              <option value="ar">→ 🇸🇦</option>
-              <option value="pt">→ 🇧🇷</option>
-              <option value="es">→ 🇪🇸</option>
-              <option value="zh">→ 🇨🇳</option>
-              <option value="sw">→ 🇰🇪</option>
+            <select class="ocrsel" id="tr-to">
+              <option value="en">→🇬🇧</option>
+              <option value="fr">→🇫🇷</option>
+              <option value="ar">→🇸🇦</option>
+              <option value="pt">→🇧🇷</option>
+              <option value="es">→🇪🇸</option>
+              <option value="sw">→🇰🇪 Swahili</option>
+              <option value="zh">→🇨🇳</option>
             </select>
           </div>
-          <div class="ocr-tabs">
-            <button class="ocr-tab on" id="tab-ocr" onclick="switchOcrTab('ocr')">📝 Texte</button>
-            <button class="ocr-tab" id="tab-trans" onclick="switchOcrTab('trans')">🌍 Traduction</button>
+          <div class="ocrtabs">
+            <button class="ocrtab on" id="tab-t" onclick="switchOTab('t')">📝 Texte</button>
+            <button class="ocrtab" id="tab-tr" onclick="switchOTab('tr')">🌍 Trad.</button>
+            <button class="ocrtab" id="tab-bc" onclick="switchOTab('bc')">🪪 Carte</button>
           </div>
-          <div class="ocr-pane on" id="pane-ocr">
-            <textarea id="ocr-text" placeholder="Texte extrait ici...&#10;&#10;💡 Sélectionnez une zone ou lancez l'OCR complet."></textarea>
+          <div class="ocrpane on" id="opane-t"><textarea id="ocrtxt" placeholder="Texte extrait...&#10;&#10;💡 Sélectionnez une zone ou OCR complet."></textarea></div>
+          <div class="ocrpane" id="opane-tr"><textarea id="trtxt" placeholder="Traduction..." readonly></textarea></div>
+          <div class="ocrpane" id="opane-bc">
+            <div style="padding:12px;color:var(--mt);font-size:12px;">📇 Détection automatique de carte de visite</div>
+            <div id="bc-result">
+              <div class="bc-field"><span class="bc-label">👤 Nom</span><span class="bc-val" id="bc-name">—</span></div>
+              <div class="bc-field"><span class="bc-label">📧 Email</span><span class="bc-val" id="bc-email">—</span></div>
+              <div class="bc-field"><span class="bc-label">📞 Tél</span><span class="bc-val" id="bc-phone">—</span></div>
+              <div class="bc-field"><span class="bc-label">🏢 Société</span><span class="bc-val" id="bc-company">—</span></div>
+              <div class="bc-field"><span class="bc-label">🌐 Web</span><span class="bc-val" id="bc-web">—</span></div>
+              <button class="btn p" style="margin-top:8px;width:100%;justify-content:center" onclick="saveContact()">💾 Enregistrer contact</button>
+            </div>
           </div>
-          <div class="ocr-pane" id="pane-trans">
-            <textarea id="trans-text" placeholder="Traduction ici..." readonly></textarea>
-          </div>
-          <div class="ocr-bot">
-            <button class="obtn p" onclick="ocrFull()">🧠 OCR</button>
-            <button class="obtn" onclick="doTranslate()">🌍</button>
-            <button class="obtn" onclick="copyOcr()">📋</button>
-            <button class="obtn" onclick="exportOcrTxt()">⬇️</button>
+          <div class="ocrbot">
+            <button class="ob p" onclick="ocrFull()">🧠 OCR</button>
+            <button class="ob" onclick="doTranslate()">🌍</button>
+            <button class="ob" onclick="detectBC()">🪪</button>
+            <button class="ob" onclick="copyOcr()">📋</button>
+            <button class="ob" onclick="xOcrTxt()">⬇️</button>
           </div>
         </div>
       </div>
@@ -665,41 +838,39 @@ input[type=range]::-webkit-slider-thumb{
 
     <!-- ═══ PAGES ═══ -->
     <div class="panel" id="panel-pages">
-      <div class="pages-wrap">
-        <div class="pages-grid" id="pages-grid">
-          <div class="pages-empty" id="pages-empty">
-            <div class="pe-i">📑</div>
-            <p style="font-size:13px">Aucune page.<br>Ajoutez des scans.</p>
-          </div>
+      <div class="pgwrap">
+        <div class="pggrid" id="pggrid">
+          <div class="pg-empty" id="pg-empty"><div style="font-size:40px;opacity:.2;margin-bottom:12px">📑</div><p style="font-size:13px">Ajoutez des scans ici</p></div>
         </div>
-        <div class="pages-side">
-          <div class="ps-title">📤 Exporter tout</div>
-          <button class="expbtn" onclick="exportAll('pdf')"><span class="expbtn-i">📄</span><div class="expbtn-t"><div class="expbtn-n">PDF</div><div class="expbtn-d">Multi-pages</div></div></button>
-          <button class="expbtn" onclick="exportAll('word')"><span class="expbtn-i">📝</span><div class="expbtn-t"><div class="expbtn-n">Word</div><div class="expbtn-d">.docx</div></div></button>
-          <button class="expbtn" onclick="exportAll('png')"><span class="expbtn-i">🖼️</span><div class="expbtn-t"><div class="expbtn-n">PNG</div><div class="expbtn-d">Images</div></div></button>
-          <button class="expbtn" onclick="exportAll('jpeg')"><span class="expbtn-i">📸</span><div class="expbtn-t"><div class="expbtn-n">JPEG</div></div></button>
-          <div style="height:1px;background:var(--border)"></div>
-          <div class="ps-title">Format PDF</div>
+        <div class="pgsid">
+          <div class="pst">📤 Exporter tout</div>
+          <button class="xbtn" onclick="askExportAll('pdf')"><span class="xi">📄</span><div><div class="xt-n">PDF</div><div class="xt-d">Multi-pages</div></div></button>
+          <button class="xbtn" onclick="askExportAll('word')"><span class="xi">📝</span><div><div class="xt-n">Word</div><div class="xt-d">.docx</div></div></button>
+          <button class="xbtn" onclick="askExportAll('png')"><span class="xi">🖼️</span><div><div class="xt-n">PNG</div></div></button>
+          <button class="xbtn" onclick="askExportAll('jpeg')"><span class="xi">📸</span><div><div class="xt-n">JPEG</div></div></button>
+          <button class="xbtn" onclick="openShare()"><span class="xi">📤</span><div><div class="xt-n">Partager</div></div></button>
+          <div style="height:1px;background:var(--b1)"></div>
+          <div class="pst">Format PDF</div>
           <div style="display:flex;gap:5px;flex-wrap:wrap">
             <button class="btn" onclick="pdfFmt='a4';toast('A4','ok')">A4</button>
             <button class="btn" onclick="pdfFmt='a3';toast('A3','ok')">A3</button>
             <button class="btn" onclick="pdfFmt='letter';toast('Letter','ok')">Letter</button>
           </div>
-          <div style="height:1px;background:var(--border)"></div>
-          <button class="btn danger" style="width:100%;justify-content:center" onclick="clearPages()">🗑️ Tout effacer</button>
+          <div style="height:1px;background:var(--b1)"></div>
+          <button class="btn r" style="width:100%;justify-content:center" onclick="clearPages()">🗑️ Tout effacer</button>
         </div>
       </div>
     </div>
 
     <!-- ═══ FOLDERS ═══ -->
     <div class="panel" id="panel-folders">
-      <div class="folders-wrap">
-        <div class="folders-side">
-          <button class="btn primary" style="width:100%;justify-content:center;margin-bottom:6px" onclick="createFolder()">➕ Nouveau dossier</button>
-          <div id="folder-list"></div>
+      <div class="fdwrap">
+        <div class="fdsid">
+          <button class="btn p" style="width:100%;justify-content:center;margin-bottom:8px" onclick="newFolder()">➕ Nouveau</button>
+          <div id="fd-list"></div>
         </div>
-        <div class="folders-content" id="folder-content">
-          <div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:60px 20px">
+        <div class="fdcontent" id="fd-content">
+          <div style="grid-column:1/-1;text-align:center;color:var(--mt);padding:60px 20px">
             <div style="font-size:40px;opacity:.2;margin-bottom:12px">📁</div>
             <p style="font-size:13px">Sélectionnez un dossier</p>
           </div>
@@ -709,38 +880,77 @@ input[type=range]::-webkit-slider-thumb{
 
     <!-- ═══ TOOLS ═══ -->
     <div class="panel" id="panel-tools">
-      <div class="tools-grid">
-        <div class="tool-card" onclick="toolAction('pdf-word')"><div class="tool-icon">📄</div><div class="tool-name">PDF → Word</div><div class="tool-cat">Conversion</div></div>
-        <div class="tool-card" onclick="toolAction('pdf-jpg')"><div class="tool-icon">🖼️</div><div class="tool-name">PDF → JPG</div><div class="tool-cat">Conversion</div></div>
-        <div class="tool-card" onclick="toolAction('img-pdf')"><div class="tool-icon">📥</div><div class="tool-name">Image → PDF</div><div class="tool-cat">Conversion</div></div>
-        <div class="tool-card" onclick="toolAction('img-word')"><div class="tool-icon">📝</div><div class="tool-name">Image → Word</div><div class="tool-cat">OCR</div></div>
-        <div class="tool-card" onclick="toolAction('img-txt')"><div class="tool-icon">🔤</div><div class="tool-name">Image → Texte</div><div class="tool-cat">OCR</div></div>
-        <div class="tool-card" onclick="toolAction('merge-pdf')"><div class="tool-icon">🔗</div><div class="tool-name">Fusionner PDF</div><div class="tool-cat">PDF</div></div>
-        <div class="tool-card" onclick="toolAction('split-pdf')"><div class="tool-icon">✂️</div><div class="tool-name">Diviser PDF</div><div class="tool-cat">PDF</div></div>
-        <div class="tool-card" onclick="toolAction('rotate-pdf')"><div class="tool-icon">🔄</div><div class="tool-name">Rotation PDF</div><div class="tool-cat">PDF</div></div>
-        <div class="tool-card" onclick="toolAction('watermark')"><div class="tool-icon">🔒</div><div class="tool-name">Filigrane</div><div class="tool-cat">Sécurité</div></div>
-        <div class="tool-card" onclick="toolAction('sign')"><div class="tool-icon">✍️</div><div class="tool-name">Signature</div><div class="tool-cat">Document</div></div>
-        <div class="tool-card" onclick="toolAction('scan-id')"><div class="tool-icon">🪪</div><div class="tool-name">Scan CNI</div><div class="tool-cat">ID</div></div>
-        <div class="tool-card" onclick="toolAction('id-photo')"><div class="tool-icon">👤</div><div class="tool-name">Photo ID</div><div class="tool-cat">ID</div></div>
-        <div class="tool-card" onclick="toolAction('translate')"><div class="tool-icon">🌍</div><div class="tool-name">Traduction</div><div class="tool-cat">Langues</div></div>
-        <div class="tool-card" onclick="toolAction('compress')"><div class="tool-icon">📦</div><div class="tool-name">Compresser</div><div class="tool-cat">PDF</div></div>
-        <div class="tool-card" onclick="toolAction('scan-book')"><div class="tool-icon">📖</div><div class="tool-name">Scan Livre</div><div class="tool-cat">Scan</div></div>
-        <div class="tool-card" onclick="toolAction('annotate')"><div class="tool-icon">✏️</div><div class="tool-name">Annoter</div><div class="tool-cat">Édition</div></div>
+      <div class="toolswrap">
+        <div class="tools-cat-title">📄 Conversion PDF</div>
+        <div class="toolsgrid">
+          <div class="tc" onclick="ta('img-pdf')"><div class="tcicon">📥</div><div class="tcname">Image → PDF</div></div>
+          <div class="tc" onclick="ta('pdf-jpg')"><div class="tcicon">🖼️</div><div class="tcname">PDF → JPG</div></div>
+          <div class="tc" onclick="ta('img-word')"><div class="tcicon">📝</div><div class="tcname">Image → Word</div></div>
+          <div class="tc" onclick="ta('merge')"><div class="tcicon">🔗</div><div class="tcname">Fusionner PDF</div></div>
+          <div class="tc" onclick="ta('split')"><div class="tcicon">✂️</div><div class="tcname">Diviser PDF</div></div>
+          <div class="tc" onclick="ta('compress')"><div class="tcicon">📦</div><div class="tcname">Compresser</div></div>
+          <div class="tc" onclick="ta('rotate')"><div class="tcicon">🔄</div><div class="tcname">Rotation PDF</div></div>
+          <div class="tc" onclick="ta('sort')"><div class="tcicon">🔀</div><div class="tcname">Trier pages</div></div>
+        </div>
+        <div class="tools-cat-title">🧠 OCR & Texte</div>
+        <div class="toolsgrid">
+          <div class="tc" onclick="goPanel('ocr');ocrFull()"><div class="tcicon">🔤</div><div class="tcname">Image → Texte</div></div>
+          <div class="tc" onclick="goPanel('ocr');switchOTab('tr')"><div class="tcicon">🌍</div><div class="tcname">Traduction</div></div>
+          <div class="tc" onclick="goPanel('ocr');switchOTab('bc')"><div class="tcicon">🪪</div><div class="tcname">Carte de visite</div></div>
+          <div class="tc" onclick="ta('search')"><div class="tcicon">🔍</div><div class="tcname">Recherche</div></div>
+        </div>
+        <div class="tools-cat-title">🔒 Sécurité</div>
+        <div class="toolsgrid">
+          <div class="tc" onclick="goPanel('security')"><div class="tcicon">🔑</div><div class="tcname">Mot de passe</div></div>
+          <div class="tc" onclick="goPanel('edit');document.getElementById('wm-txt').focus()"><div class="tcicon">💧</div><div class="tcname">Filigrane</div></div>
+          <div class="tc" onclick="ta('qr')"><div class="tcicon">📲</div><div class="tcname">QR Code</div></div>
+          <div class="tc" onclick="openShare()"><div class="tcicon">📤</div><div class="tcname">Partager</div></div>
+        </div>
+        <div class="tools-cat-title">📸 Scan spéciaux</div>
+        <div class="toolsgrid">
+          <div class="tc" onclick="document.getElementById('batch-in').click()"><div class="tcicon">📋</div><div class="tcname">Scan Batch</div></div>
+          <div class="tc" onclick="ta('scan-id')"><div class="tcicon">🪪</div><div class="tcname">Scan CNI</div></div>
+          <div class="tc" onclick="ta('id-photo')"><div class="tcicon">👤</div><div class="tcname">Photo ID</div></div>
+          <div class="tc" onclick="ta('book')"><div class="tcicon">📖</div><div class="tcname">Scan Livre</div></div>
+        </div>
       </div>
     </div>
 
-    <!-- ═══ SIGN ═══ -->
-    <div class="panel" id="panel-sign">
-      <div style="flex:1;background:#0d0d0d;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-        <div class="no-img" id="sign-empty"><div class="no-img-icon">✍️</div><p>Chargez un document</p></div>
-        <canvas id="sign-doc-canvas"></canvas>
-      </div>
-      <div class="toolbar">
-        <button class="btn" onclick="triggerUpload()">📂 Charger</button>
-        <button class="btn primary" onclick="openSignModal()">✍️ Signature</button>
-        <button class="btn" id="btn-place" onclick="placeSign()" disabled>📌 Placer</button>
-        <button class="btn" onclick="openWatermark()">🔒 Filigrane</button>
-        <button class="btn" onclick="downloadSigned()">⬇️ PDF</button>
+    <!-- ═══ SECURITY ═══ -->
+    <div class="panel" id="panel-security">
+      <div class="secwrap">
+        <div class="sec-card">
+          <h3>🔑 Protection par mot de passe</h3>
+          <div class="sec-row"><label>Mot de passe PDF</label><input class="minput" id="pdf-pwd" type="password" placeholder="Entrez un mot de passe..."></div>
+          <div class="sec-row"><label>Confirmer</label><input class="minput" id="pdf-pwd2" type="password" placeholder="Confirmer le mot de passe..."></div>
+          <button class="btn p" onclick="exportWithPwd()">📄 Exporter PDF protégé</button>
+          <p style="font-size:11px;color:var(--mt);margin-top:10px">⚠️ Note : La protection par mot de passe PDF utilise jsPDF avec chiffrement côté client.</p>
+        </div>
+        <div class="sec-card">
+          <h3>💧 Filigrane de sécurité</h3>
+          <div class="sec-row"><label>Texte</label><input class="minput" id="sec-wm" value="CONFIDENTIEL — NE PAS DIFFUSER" placeholder="Texte filigrane..."></div>
+          <div class="sec-row"><label>Type</label>
+            <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:5px;">
+              <button class="btn" onclick="applySecWM('text')">💬 Texte</button>
+              <button class="btn" onclick="applySecWM('diagonal')">↗️ Diagonal</button>
+              <button class="btn" onclick="applySecWM('grid')">🔲 Grille</button>
+            </div>
+          </div>
+        </div>
+        <div class="sec-card">
+          <h3>📲 QR Code de partage</h3>
+          <p style="font-size:12px;color:var(--mt);margin-bottom:12px">Générez un QR code pour partager votre document facilement.</p>
+          <button class="btn p" onclick="openShare()">📲 Générer QR Code</button>
+        </div>
+        <div class="sec-card">
+          <h3>🔍 Recherche intelligente</h3>
+          <p style="font-size:12px;color:var(--mt);margin-bottom:12px">Recherchez dans le texte OCR de tous vos documents.</p>
+          <div style="display:flex;gap:8px;">
+            <input class="minput" id="smart-search" placeholder="Mot clé à rechercher..." style="flex:1">
+            <button class="btn p" onclick="smartSearch()">🔍</button>
+          </div>
+          <div id="search-results" style="margin-top:12px;display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
       </div>
     </div>
 
@@ -749,272 +959,471 @@ input[type=range]::-webkit-slider-thumb{
 
 <!-- BOTTOM NAV mobile -->
 <div class="bnav">
-  <div class="bnav-inner">
-    <button class="bnavbtn active" id="bn-scan" onclick="goPanel('scan')"><span class="bni">📷</span><span class="bnl">Scan</span></button>
-    <button class="bnavbtn" id="bn-crop" onclick="goPanel('crop')"><span class="bni">✂️</span><span class="bnl">Recadrer</span></button>
-    <button class="bnavbtn" id="bn-edit" onclick="goPanel('edit')"><span class="bni">🎨</span><span class="bnl">Éditer</span></button>
-    <button class="bnavbtn" id="bn-ocr" onclick="goPanel('ocr')"><span class="bni">🧠</span><span class="bnl">OCR</span></button>
-    <button class="bnavbtn" id="bn-pages" onclick="goPanel('pages')"><span class="bni">📑</span><span class="bnl">Pages</span></button>
-    <button class="bnavbtn" id="bn-tools" onclick="goPanel('tools')"><span class="bni">🔧</span><span class="bnl">Outils</span></button>
+  <div class="bnav-row">
+    <button class="bnb on" id="bnb-scan" onclick="goPanel('scan')"><span class="bni">📷</span><span class="bnl">Scan</span></button>
+    <button class="bnb" id="bnb-crop" onclick="goPanel('crop')"><span class="bni">✂️</span><span class="bnl">Recadrer</span></button>
+    <button class="bnb" id="bnb-edit" onclick="goPanel('edit')"><span class="bni">🎨</span><span class="bnl">Éditer</span></button>
+    <button class="bnb" id="bnb-ocr" onclick="goPanel('ocr')"><span class="bni">🧠</span><span class="bnl">OCR</span></button>
+    <button class="bnb" id="bnb-pages" onclick="goPanel('pages')"><span class="bni">📑</span><span class="bnl">Pages</span></button>
+    <button class="bnb" id="bnb-tools" onclick="goPanel('tools')"><span class="bni">🔧</span><span class="bnl">Outils</span></button>
   </div>
 </div>
 
-<!-- WATERMARK MODAL -->
-<div class="modal" id="wm-modal">
-  <div class="modal-box">
-    <h3>🔒 Filigrane / Watermark</h3>
-    <div class="mrow"><label>Texte du filigrane</label><input class="minput" id="wm-text" value="CONFIDENTIEL" placeholder="Ex: CONFIDENTIEL, © 2025..."></div>
-    <div class="mrow"><label>Couleur</label>
-      <div class="color-row">
-        <div class="color-dot on" style="background:rgba(255,79,106,0.4)" data-wc="rgba(255,79,106,0.4)" onclick="wmColor=this.dataset.wc;document.querySelectorAll('#wm-modal .color-dot').forEach(d=>d.classList.remove('on'));this.classList.add('on')"></div>
-        <div class="color-dot" style="background:rgba(0,208,132,0.4)" data-wc="rgba(0,208,132,0.4)" onclick="wmColor=this.dataset.wc;document.querySelectorAll('#wm-modal .color-dot').forEach(d=>d.classList.remove('on'));this.classList.add('on')"></div>
-        <div class="color-dot" style="background:rgba(91,127,255,0.4)" data-wc="rgba(91,127,255,0.4)" onclick="wmColor=this.dataset.wc;document.querySelectorAll('#wm-modal .color-dot').forEach(d=>d.classList.remove('on'));this.classList.add('on')"></div>
-        <div class="color-dot" style="background:rgba(255,208,96,0.4)" data-wc="rgba(255,208,96,0.4)" onclick="wmColor=this.dataset.wc;document.querySelectorAll('#wm-modal .color-dot').forEach(d=>d.classList.remove('on'));this.classList.add('on')"></div>
+<!-- RENAME MODAL -->
+<div class="modal" id="rename-modal">
+  <div class="mbox">
+    <h3>✏️ Renommer le document</h3>
+    <p class="rename-info">Ce nom sera utilisé comme nom de fichier lors de l'exportation (PDF, PNG, JPEG, Word, etc.)</p>
+    <div class="mrow">
+      <label>Nom du document</label>
+      <input class="minput" id="rename-in" placeholder="Ex: Contrat_Juillet_2025" oninput="previewName(this.value)">
+    </div>
+    <div id="rename-preview" style="font-size:11px;color:var(--mt);margin-top:-6px;margin-bottom:10px;font-family:'JetBrains Mono',monospace;"></div>
+    <div class="macts">
+      <button class="btn" style="flex:1" onclick="closeModal('rename-modal')">Annuler</button>
+      <button class="btn p" style="flex:2" onclick="confirmRename()">✅ Renommer</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT NAME MODAL (shown before any export) -->
+<div class="modal" id="export-modal">
+  <div class="mbox">
+    <h3 id="exp-modal-title">📄 Exporter en PDF</h3>
+    <p class="rename-info">Choisissez le nom du fichier avant d'exporter.</p>
+    <div class="mrow">
+      <label>Nom du fichier</label>
+      <input class="minput" id="exp-name-in" placeholder="nom_du_fichier">
+    </div>
+    <div id="exp-name-preview" style="font-size:11px;color:var(--green);margin-top:-6px;margin-bottom:6px;font-family:'JetBrains Mono',monospace;"></div>
+    <div class="mrow" id="exp-pdf-opts" style="display:none">
+      <label>Format PDF</label>
+      <div style="display:flex;gap:7px;margin-top:5px;">
+        <button class="btn" onclick="expFmt='a4';highlightFmt(this)">A4</button>
+        <button class="btn" onclick="expFmt='a3';highlightFmt(this)">A3</button>
+        <button class="btn" onclick="expFmt='letter';highlightFmt(this)">Letter</button>
       </div>
     </div>
-    <div class="mrow"><label>Opacité</label><input type="range" min="10" max="80" value="30" oninput="wmOpacity=parseInt(this.value)/100"></div>
-    <div class="mactions">
-      <button class="btn" style="flex:1" onclick="closeModal('wm-modal')">Annuler</button>
-      <button class="btn primary" style="flex:2" onclick="applyWatermark()">✅ Appliquer</button>
+    <div class="macts">
+      <button class="btn" style="flex:1" onclick="closeModal('export-modal')">Annuler</button>
+      <button class="btn p" style="flex:2" id="exp-confirm-btn" onclick="confirmExport()">✅ Exporter</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE / QR MODAL -->
+<div class="modal" id="share-modal">
+  <div class="mbox">
+    <h3>📤 Partager le document</h3>
+    <div id="qr-box"></div>
+    <p style="font-size:11px;color:var(--mt);text-align:center;margin-top:8px" id="qr-info">QR code généré pour le scan actuel</p>
+    <div class="share-btns">
+      <button class="sbtn" onclick="shareVia('copy')">📋 Copier image</button>
+      <button class="sbtn" onclick="shareVia('download')">⬇️ Télécharger</button>
+      <button class="sbtn" onclick="shareVia('native')">📱 Partager</button>
+    </div>
+    <div class="macts"><button class="btn" style="flex:1" onclick="closeModal('share-modal')">✕ Fermer</button></div>
+  </div>
+</div>
+
+<!-- TEXT ANNOT MODAL -->
+<div class="modal" id="txt-modal">
+  <div class="mbox">
+    <h3>T Ajouter du texte</h3>
+    <div class="mrow"><label>Texte</label><input class="minput" id="txt-in" placeholder="Votre texte..."></div>
+    <div class="mrow"><label>Taille</label><input type="range" min="12" max="72" value="24" id="txt-size"></div>
+    <div class="macts">
+      <button class="btn" style="flex:1" onclick="closeModal('txt-modal')">Annuler</button>
+      <button class="btn p" style="flex:2" onclick="confirmTxt()">✅ Ajouter</button>
     </div>
   </div>
 </div>
 
 <!-- SIGN PAD MODAL -->
 <div class="modal" id="sign-modal">
-  <div class="modal-box">
-    <h3>✍️ Dessinez votre signature</h3>
-    <canvas id="draw-canvas" width="340" height="140"></canvas>
-    <div class="mactions">
+  <div class="mbox">
+    <h3>✍️ Votre signature</h3>
+    <canvas id="draw-c" width="356" height="140"></canvas>
+    <div class="macts">
       <button class="btn" style="flex:1" onclick="clearDraw()">🗑️</button>
-      <button class="btn primary" style="flex:2" onclick="saveSign()">✅ Utiliser</button>
+      <button class="btn p" style="flex:2" onclick="saveSign()">✅ Utiliser</button>
       <button class="btn" style="flex:1" onclick="closeModal('sign-modal')">✕</button>
-    </div>
-  </div>
-</div>
-
-<!-- TEXT INPUT MODAL (for text annotations) -->
-<div class="modal" id="txt-modal">
-  <div class="modal-box">
-    <h3>T Ajouter du texte</h3>
-    <div class="mrow"><label>Texte</label><input class="minput" id="txt-input" placeholder="Entrez votre texte..."></div>
-    <div class="mactions">
-      <button class="btn" style="flex:1" onclick="closeModal('txt-modal')">Annuler</button>
-      <button class="btn primary" style="flex:2" onclick="confirmAnnotText()">✅ Ajouter</button>
     </div>
   </div>
 </div>
 
 <!-- PROGRESS -->
 <div class="prog" id="prog">
-  <div class="prog-box">
+  <div class="progbox">
     <h3 id="prog-t">Traitement...</h3>
     <p id="prog-s">Veuillez patienter</p>
-    <div class="prog-bar"><div class="prog-fill" id="prog-f"></div></div>
-    <div class="prog-pct" id="prog-p">0%</div>
+    <div class="pbar"><div class="pfill" id="prog-f"></div></div>
+    <div class="ppct" id="prog-p">0%</div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
+// OpenCV.js initialization
+// ══════════════════════════════════════════════
+let cvReady=false;
+function onOpenCvReady(){
+  cvReady=true;
+  const s=document.getElementById('cv-status');
+  s.textContent='✅ OpenCV';s.classList.add('ready');
+  setTimeout(()=>s.style.display='none',3000);
+  toast('✅ OpenCV chargé — Détection avancée activée','ok');
+}
+
+// ══════════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════
-let camStream=null, facingMode='environment';
+// ══════════════════════════════════════════════
+let camStream=null,facingMode='environment';
 let sourceImg=null;
 let workCanvas=null;
 let pages=[];
 let pdfFmt='a4';
 let activeFilter='orig';
-let adjBr=0,adjCo=0,adjSh=0,adjRo=0;
-// Perspective corners [TL,TR,BL,BR] in canvas display coords
-let corners=[[0,0],[0,0],[0,0],[0,0]];
-let perspScale=1;
-// Annotations
-let annotMode=null, annotColor='#ff4f6a', annotW=3;
-let annotCtx=null, annotPainting=false, annotStart=null;
-let annotations=[]; // [{type,color,w,pts}]
-// Signature
-let signImg=null, drawCtx=null, drawPainting=false;
-// Watermark
-let wmColor='rgba(255,79,106,0.4)', wmOpacity=0.3;
-// Folders
-let folders={'Tous les docs':[],'CNI/ID':[],'Contrats':[],'Photos':[]};
-let activeFolder='Tous les docs';
-// OCR
-let ocrSelecting=false, ocrStart=null, ocrRect=null;
+let adjBr=0,adjCo=0,adjSat=0,adjSh=0,adjRo=0;
+let corners=[[0,0],[100,0],[0,100],[100,100]]; // % coords
+let perspScale=1,perspOffX=0,perspOffY=0,perspW=0,perspH=0;
+let annotMode=null,annotColor='#ff4466',annotW=3;
+let annotCtx=null,annPainting=false,annStart=null;
+let annotations=[];
+let signImg=null,drawCtx=null,drawPainting=false;
+let wmOp=0.3;
+let batchImgs=[];
+let folders={'Tous':[],'CNI/ID':[],'Contrats':[],'Photos':[],'Reçus':[]};
+let activeFolder='Tous';
+let docIndex=[]; // {name, date, url, ocrText, tags}
+let ocrRect=null;
+let annotTmpStart=null;
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
 // NAVIGATION
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
 function goPanel(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  ['nb-','bn-'].forEach(p=>{
-    document.querySelectorAll('[id^="'+p+'"]').forEach(b=>b.classList.remove('active'));
-    const el=document.getElementById(p+name);
-    if(el) el.classList.add('active');
+  ['snb-','bnb-'].forEach(px=>{
+    document.querySelectorAll('[id^="'+px+'"]').forEach(b=>b.classList.remove('on'));
+    const el=document.getElementById(px+name);
+    if(el) el.classList.add('on');
   });
   document.getElementById('panel-'+name).classList.add('active');
   if(name==='crop') initCrop();
   if(name==='edit') initEdit();
   if(name==='ocr') initOcr();
-  if(name==='sign') initSign();
   if(name==='folders') renderFolders();
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
 // CAMERA
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
 async function startCam(){
   try{
     if(camStream) camStream.getTracks().forEach(t=>t.stop());
     camStream=await navigator.mediaDevices.getUserMedia({
       video:{facingMode,width:{ideal:1920},height:{ideal:1080}}
     });
-    const v=document.getElementById('cam-video');
-    v.srcObject=camStream; v.style.display='block';
+    const v=document.getElementById('v');
+    v.srcObject=camStream;v.style.display='block';
     document.getElementById('idle').style.display='none';
-    document.getElementById('cam-snap').style.display='none';
+    document.getElementById('snapimg').style.display='none';
     document.getElementById('btn-cap').disabled=false;
-    document.getElementById('det-svg').style.display='block';
     document.getElementById('scanline').classList.add('on');
-    startDetection();
+    document.getElementById('det-canvas').style.display='block';
+    startRealDetection();
     toast('📷 Caméra activée','ok');
   }catch(e){ toast('❌ Caméra refusée','err'); }
 }
 
 function flipCam(){ facingMode=facingMode==='environment'?'user':'environment'; if(camStream) startCam(); }
-function triggerUpload(){ document.getElementById('file-in').click(); }
+function triggerUp(){ document.getElementById('file-in').click(); }
 function camClick(){ if(!camStream&&!sourceImg) startCam(); }
 
-// ─── Real edge detection ───────────────────
+// Real OpenCV edge detection on video feed
 let detInt=null;
-function startDetection(){
+function startRealDetection(){
   if(detInt) clearInterval(detInt);
   detInt=setInterval(()=>{
-    const v=document.getElementById('cam-video');
+    const v=document.getElementById('v');
     if(!v.videoWidth) return;
-    const sw=160,sh=Math.round(160*v.videoHeight/v.videoWidth);
-    const sc=document.createElement('canvas');
-    sc.width=sw;sc.height=sh;
-    sc.getContext('2d').drawImage(v,0,0,sw,sh);
-    const d=sc.getContext('2d').getImageData(0,0,sw,sh).data;
-    const gray=new Uint8Array(sw*sh);
-    for(let i=0;i<sw*sh;i++) gray[i]=0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2];
-    let minX=sw,maxX=0,minY=sh,maxY=0,found=false;
-    for(let y=1;y<sh-1;y++) for(let x=1;x<sw-1;x++){
-      const g=Math.abs(gray[y*sw+x+1]-gray[y*sw+x-1])+Math.abs(gray[(y+1)*sw+x]-gray[(y-1)*sw+x]);
-      if(g>45){ if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;found=true; }
+    const dc=document.getElementById('det-canvas');
+    const dctx=dc.getContext('2d');
+    dc.width=v.offsetWidth;dc.height=v.offsetHeight;
+    dctx.clearRect(0,0,dc.width,dc.height);
+    if(cvReady){
+      // Sample at small size for performance
+      const sw=320,sh=Math.round(320*v.videoHeight/v.videoWidth);
+      const sc=document.createElement('canvas');sc.width=sw;sc.height=sh;
+      sc.getContext('2d').drawImage(v,0,0,sw,sh);
+      try{
+        const src=cv.imread(sc);
+        const gray=new cv.Mat();const blur=new cv.Mat();const edges=new cv.Mat();
+        cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);
+        cv.GaussianBlur(gray,blur,new cv.Size(5,5),0);
+        cv.Canny(blur,edges,50,150);
+        // Find contours
+        const contours=new cv.MatVector(),hier=new cv.Mat();
+        cv.findContours(edges,contours,hier,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE);
+        let bestArea=0,bestBox=null;
+        for(let i=0;i<contours.size();i++){
+          const cnt=contours.get(i);
+          const area=cv.contourArea(cnt);
+          if(area>sw*sh*.05&&area>bestArea){
+            bestArea=area;
+            bestBox=cv.boundingRect(cnt);
+          }
+          cnt.delete();
+        }
+        src.delete();gray.delete();blur.delete();edges.delete();contours.delete();hier.delete();
+        if(bestBox){
+          const sx=dc.width/sw,sy=dc.height/sh;
+          const x=bestBox.x*sx,y=bestBox.y*sy;
+          const w=bestBox.width*sx,h=bestBox.height*sy;
+          // Draw green detection box
+          dctx.strokeStyle='#00e087';dctx.lineWidth=2;
+          dctx.setLineDash([8,4]);dctx.strokeRect(x,y,w,h);
+          // Corner dots
+          [[x,y],[x+w,y],[x,y+h],[x+w,y+h]].forEach(([cx,cy])=>{
+            dctx.beginPath();dctx.arc(cx,cy,6,0,Math.PI*2);
+            dctx.fillStyle='#00e087';dctx.fill();
+          });
+          // Doc type
+          const ratio=bestBox.width/bestBox.height;
+          let lbl='📄 Document';
+          if(ratio>1.4&&ratio<1.7) lbl='🪪 CNI / Carte ID';
+          else if(ratio>.9&&ratio<1.1) lbl='🖼️ Photo 4×4';
+          else if(ratio>.65&&ratio<.75) lbl='📄 Format A4';
+          else if(ratio>1.3&&ratio<1.5) lbl='📘 Passeport';
+          else if(ratio<.55) lbl='🧾 Reçu';
+          const b=document.getElementById('doc-badge');
+          b.textContent=lbl;b.style.display='block';
+        } else {
+          document.getElementById('doc-badge').style.display='none';
+        }
+      }catch(e){}
+    } else {
+      // Fallback without OpenCV
+      fallbackDetection(v,dctx,dc.width,dc.height);
     }
-    if(!found||maxX-minX<sw*.2||maxY-minY<sh*.2){ document.getElementById('doc-badge').style.display='none';return; }
-    const px=minX/sw*100,py=minY/sh*100,pw=(maxX-minX)/sw*100,ph=(maxY-minY)/sh*100;
-    const r=document.getElementById('det-rect');
-    r.setAttribute('x',px);r.setAttribute('y',py);r.setAttribute('width',pw);r.setAttribute('height',ph);
-    ['c-tl','c-tr','c-bl','c-br'].forEach((id,i)=>{
-      const el=document.getElementById(id);
-      el.setAttribute('cx',i%2===0?px:px+pw);
-      el.setAttribute('cy',i<2?py:py+ph);
-    });
-    const ratio=pw/ph;
-    let lbl='📄 Document';
-    if(ratio>1.4&&ratio<1.7) lbl='🪪 CNI';
-    else if(ratio>0.9&&ratio<1.1) lbl='🖼️ 4×4';
-    else if(ratio>0.65&&ratio<0.75) lbl='📄 A4';
-    else if(ratio>1.3&&ratio<1.5) lbl='📘 Passeport';
-    else if(ratio<0.55) lbl='🧾 Reçu';
-    const b=document.getElementById('doc-badge');
-    b.textContent=lbl;b.style.display='block';
-  },900);
+  },700);
 }
 
-// ─── Capture ──────────────────────────────
+function fallbackDetection(v,dctx,dw,dh){
+  const sw=160,sh=Math.round(160*v.videoHeight/v.videoWidth);
+  const sc=document.createElement('canvas');sc.width=sw;sc.height=sh;
+  sc.getContext('2d').drawImage(v,0,0,sw,sh);
+  const d=sc.getContext('2d').getImageData(0,0,sw,sh).data;
+  const g=new Uint8Array(sw*sh);
+  for(let i=0;i<sw*sh;i++) g[i]=.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2];
+  let mx=sw,ax=0,my=sh,ay=0,found=false;
+  for(let y=1;y<sh-1;y++) for(let x=1;x<sw-1;x++){
+    const gv=Math.abs(g[y*sw+x+1]-g[y*sw+x-1])+Math.abs(g[(y+1)*sw+x]-g[(y-1)*sw+x]);
+    if(gv>40){if(x<mx)mx=x;if(x>ax)ax=x;if(y<my)my=y;if(y>ay)ay=y;found=true;}
+  }
+  if(found&&ax-mx>sw*.15&&ay-my>sh*.15){
+    const sx=dw/sw,sy=dh/sh;
+    dctx.strokeStyle='#00e087';dctx.lineWidth=2;dctx.setLineDash([6,3]);
+    dctx.strokeRect(mx*sx,my*sy,(ax-mx)*sx,(ay-my)*sy);
+  }
+}
+
+// Capture
 function doCapture(){
-  const v=document.getElementById('cam-video');
-  const c=document.getElementById('cam-canvas');
+  const v=document.getElementById('v');
+  const c=document.getElementById('cam-c');
   c.width=v.videoWidth;c.height=v.videoHeight;
   c.getContext('2d').drawImage(v,0,0);
   clearInterval(detInt);
   document.getElementById('scanline').classList.remove('on');
-  document.getElementById('det-svg').style.display='none';
+  document.getElementById('det-canvas').style.display='none';
   document.getElementById('doc-badge').style.display='none';
-  const snap=document.getElementById('cam-snap');
-  snap.src=c.toDataURL('image/jpeg',.95);
-  snap.style.display='block';
-  document.getElementById('cam-video').style.display='none';
-  loadImgURL(snap.src);
-  toast('✅ Capturé !','ok');
-  setTimeout(()=>goPanel('crop'),400);
+  // Flash
+  const fl=document.getElementById('flash');
+  fl.classList.add('on');setTimeout(()=>fl.classList.remove('on'),200);
+  const dataURL = c.toDataURL('image/jpeg',.95);
+  const snap=document.getElementById('snapimg');
+  snap.src=dataURL; snap.style.display='block';
+  document.getElementById('v').style.display='none';
+
+  // Add to current session
+  const sess = sessions[currentSession];
+  if(pendingAddToSession) {
+    // Adding an extra capture to existing session
+    sess.captures.push({url: dataURL, edited: null});
+    currentCapture = sess.captures.length - 1;
+    pendingAddToSession = false;
+    toast('➕ Capture '+(currentCapture+1)+' ajoutée au document','ok');
+  } else {
+    // First or fresh capture
+    if(sess.captures.length === 0) {
+      sess.captures.push({url: dataURL, edited: null});
+      currentCapture = 0;
+    } else {
+      // Replace current capture
+      sess.captures[currentCapture] = {url: dataURL, edited: null};
+    }
+    toast('✅ Capturé — '+sess.captures.length+' capture(s) dans ce document','ok');
+  }
+  renderSessionStrip();
+  loadImgURL(dataURL);
+  setTimeout(()=>goPanel('crop'),350);
 }
 
 function loadFile(e){
   const f=e.target.files[0];if(!f) return;
   const r=new FileReader();
-  r.onload=ev=>{ loadImgURL(ev.target.result); toast('🖼️ Image chargée','ok'); setTimeout(()=>goPanel('crop'),300); };
-  r.readAsDataURL(f);
+  r.onload=ev=>{
+    const url = ev.target.result;
+    const sess = sessions[currentSession];
+    if(pendingAddToSession) {
+      sess.captures.push({url, edited:null});
+      currentCapture = sess.captures.length - 1;
+      pendingAddToSession = false;
+      toast('➕ Image ajoutée au document','ok');
+    } else {
+      if(sess.captures.length === 0) {
+        sess.captures.push({url, edited:null});
+        currentCapture = 0;
+      } else {
+        sess.captures[currentCapture] = {url, edited:null};
+      }
+      toast('🖼️ Image importée','ok');
+    }
+    renderSessionStrip();
+    loadImgURL(url);
+    setTimeout(()=>goPanel('crop'),300);
+  };
+  r.readAsDataURL(f);e.target.value='';
+}
+
+// Batch scan
+function startBatch(){
+  document.getElementById('batch-in').click();
+}
+
+function loadBatch(e){
+  const files=Array.from(e.target.files);if(!files.length) return;
+  batchImgs=[];
+  document.getElementById('batch-badge').classList.add('on');
+  let loaded=0;
+  files.forEach(f=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
+        c.getContext('2d').drawImage(img,0,0);
+        const url=c.toDataURL('image/jpeg',.92);
+        batchImgs.push(url);pages.push(url);loaded++;
+        document.getElementById('batch-badge').textContent='📋 Batch: '+loaded;
+        updatePagesUI();
+        if(loaded===files.length){
+          toast('📋 '+loaded+' images importées en batch','ok');
+          loadImgURL(batchImgs[0]);
+          document.getElementById('batch-badge').classList.remove('on');
+        }
+      };img.src=ev.target.result;
+    };r.readAsDataURL(f);
+  });
   e.target.value='';
 }
 
 function loadImgURL(url){
   const img=new Image();
   img.onload=()=>{
-    sourceImg=img;
-    workCanvas=imgToCanvas(img);
-    adjBr=0;adjCo=0;adjSh=0;adjRo=0;activeFilter='orig';
+    sourceImg=img;workCanvas=i2c(img);
+    adjBr=0;adjCo=0;adjSat=0;adjSh=0;adjRo=0;activeFilter='orig';
     document.getElementById('idle').style.display='none';
     document.getElementById('btn-cap').disabled=false;
-    document.querySelectorAll('input[type=range]').forEach(r=>{
-      if(r.id!=='wm-modal') r.value=['vb','vc','vs','vr'].includes(r.id)?0:r.value;
+    // Reset sliders
+    ['sl-br','sl-co','sl-sat','sl-sh','sl-ro'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.value=0;
     });
-    ['vb','vc','vs'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent='0'; });
-    const vr=document.getElementById('vr'); if(vr) vr.textContent='0°';
-  };
-  img.src=url;
+    ['vb','vc','vsat','vsh'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='0';});
+    const vr=document.getElementById('vro');if(vr)vr.textContent='0°';
+    document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+    document.querySelector('.fb')&&document.querySelector('.fb').classList.add('on');
+  };img.src=url;
 }
 
-function imgToCanvas(img){
-  const c=document.createElement('canvas');
-  c.width=img.width;c.height=img.height;
-  c.getContext('2d').drawImage(img,0,0);
-  return c;
+function i2c(img){
+  const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
+  c.getContext('2d').drawImage(img,0,0);return c;
 }
 
-// ═══════════════════════════════════════════
-// PERSPECTIVE CROP — 4 draggable corners
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
+// PERSPECTIVE CROP with OpenCV
+// ══════════════════════════════════════════════
 function initCrop(){
-  if(!sourceImg){ document.getElementById('crop-empty').style.display='flex'; return; }
-  document.getElementById('crop-empty').style.display='none';
+  if(!sourceImg){document.getElementById('crop-e').style.display='flex';return;}
+  document.getElementById('crop-e').style.display='none';
   renderPerspCanvas();
+  if(cvReady) setTimeout(autoDetectDoc,200);
 }
 
 function renderPerspCanvas(){
-  const wrap=document.getElementById('persp-wrap');
-  const canvas=document.getElementById('persp-canvas');
+  const wrap=document.getElementById('perwrap');
+  const canvas=document.getElementById('pc');
   const maxW=wrap.clientWidth-4,maxH=wrap.clientHeight-4;
   perspScale=Math.min(maxW/sourceImg.width,maxH/sourceImg.height,1);
   canvas.width=sourceImg.width;canvas.height=sourceImg.height;
-  const dw=sourceImg.width*perspScale,dh=sourceImg.height*perspScale;
-  canvas.style.width=dw+'px';canvas.style.height=dh+'px';
+  perspW=sourceImg.width*perspScale;perspH=sourceImg.height*perspScale;
+  canvas.style.width=perspW+'px';canvas.style.height=perspH+'px';
   canvas.getContext('2d').drawImage(sourceImg,0,0);
-
-  // Default corners = full image edges
+  // Default corners = full image
   corners=[[0,0],[sourceImg.width,0],[0,sourceImg.height],[sourceImg.width,sourceImg.height]];
-  updateHandles();
-  document.getElementById('guide-svg').classList.add('show');
-
-  // Show handles
+  updateCropHandles();
+  document.getElementById('gsvg').classList.add('show');
   for(let i=0;i<4;i++) document.getElementById('h'+i).classList.add('show');
   setupHandleDrag();
 }
 
-function updateHandles(){
-  const wrap=document.getElementById('persp-wrap');
-  const canvas=document.getElementById('persp-canvas');
+function autoDetectDoc(){
+  if(!sourceImg||!cvReady) return;
+  try{
+    const tmpC=i2c(sourceImg);
+    const src=cv.imread(tmpC);
+    const gray=new cv.Mat(),blur=new cv.Mat(),edges=new cv.Mat();
+    cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);
+    cv.GaussianBlur(gray,blur,new cv.Size(7,7),0);
+    cv.Canny(blur,edges,30,120);
+    const contours=new cv.MatVector(),hier=new cv.Mat();
+    cv.findContours(edges,contours,hier,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE);
+    let bestCnt=null,bestArea=0;
+    for(let i=0;i<contours.size();i++){
+      const cnt=contours.get(i);
+      const area=cv.contourArea(cnt);
+      if(area>sourceImg.width*sourceImg.height*.05&&area>bestArea){
+        bestArea=area;bestCnt=cnt;
+      } else cnt.delete();
+    }
+    if(bestCnt){
+      const rect=cv.boundingRect(bestCnt);
+      const pad=10;
+      const x=Math.max(0,rect.x-pad),y=Math.max(0,rect.y-pad);
+      const x2=Math.min(sourceImg.width,rect.x+rect.width+pad);
+      const y2=Math.min(sourceImg.height,rect.y+rect.height+pad);
+      corners=[[x,y],[x2,y],[x,y2],[x2,y2]];
+      updateCropHandles();
+      document.getElementById('persp-hint').style.display='block';
+      setTimeout(()=>document.getElementById('persp-hint').style.display='none',3000);
+      toast('🔍 Document détecté automatiquement par OpenCV','ok');
+      bestCnt.delete();
+    }
+    src.delete();gray.delete();blur.delete();edges.delete();contours.delete();hier.delete();
+  }catch(e){ toast('ℹ️ Détection manuelle','info'); }
+}
+
+function updateCropHandles(){
+  const wrap=document.getElementById('perwrap');
+  const canvas=document.getElementById('pc');
   const cr=canvas.getBoundingClientRect();
   const wr=wrap.getBoundingClientRect();
   const ox=cr.left-wr.left,oy=cr.top-wr.top;
-
   corners.forEach((c,i)=>{
     const h=document.getElementById('h'+i);
     h.style.left=(ox+c[0]*perspScale)+'px';
@@ -1024,18 +1433,14 @@ function updateHandles(){
 }
 
 function updateGuidePoly(){
-  const wrap=document.getElementById('persp-wrap');
-  const canvas=document.getElementById('persp-canvas');
+  const wrap=document.getElementById('perwrap');
+  const canvas=document.getElementById('pc');
   const cr=canvas.getBoundingClientRect();
   const wr=wrap.getBoundingClientRect();
   const ox=cr.left-wr.left,oy=cr.top-wr.top;
-  // TL,TR,BR,BL order for polygon
-  const pts=[corners[0],corners[1],corners[3],corners[2]].map(c=>
-    (ox+c[0]*perspScale)+','+(oy+c[1]*perspScale)
-  ).join(' ');
-  document.getElementById('guide-poly').setAttribute('points',pts);
-  // Set viewBox to wrap size
-  const svg=document.getElementById('guide-svg');
+  const pts=[corners[0],corners[1],corners[3],corners[2]].map(c=>(ox+c[0]*perspScale)+','+(oy+c[1]*perspScale)).join(' ');
+  document.getElementById('gpoly').setAttribute('points',pts);
+  const svg=document.getElementById('gsvg');
   svg.setAttribute('viewBox',`0 0 ${wrap.clientWidth} ${wrap.clientHeight}`);
 }
 
@@ -1044,144 +1449,145 @@ function setupHandleDrag(){
     const h=document.getElementById('h'+i);
     h.onpointerdown=e=>{
       e.preventDefault();h.setPointerCapture(e.pointerId);
-      const wrap=document.getElementById('persp-wrap');
-      const canvas=document.getElementById('persp-canvas');
+      const wrap=document.getElementById('perwrap');
+      const canvas=document.getElementById('pc');
       const cr=canvas.getBoundingClientRect();
       const wr=wrap.getBoundingClientRect();
       const ox=cr.left-wr.left,oy=cr.top-wr.top;
-      const onMove=e2=>{
+      const onM=e2=>{
         const nx=(e2.clientX-wr.left-ox)/perspScale;
         const ny=(e2.clientY-wr.top-oy)/perspScale;
-        corners[i]=[
-          Math.max(0,Math.min(sourceImg.width,nx)),
-          Math.max(0,Math.min(sourceImg.height,ny))
-        ];
-        updateHandles();
+        corners[i]=[Math.max(0,Math.min(sourceImg.width,nx)),Math.max(0,Math.min(sourceImg.height,ny))];
+        updateCropHandles();
       };
-      const onUp=()=>{ h.removeEventListener('pointermove',onMove); h.removeEventListener('pointerup',onUp); };
-      h.addEventListener('pointermove',onMove);
-      h.addEventListener('pointerup',onUp);
+      const onU=()=>{h.removeEventListener('pointermove',onM);h.removeEventListener('pointerup',onU);};
+      h.addEventListener('pointermove',onM);h.addEventListener('pointerup',onU);
     };
   }
 }
 
-function setCornerPreset(preset){
+function setPreset(p){
   if(!sourceImg) return;
   const W=sourceImg.width,H=sourceImg.height;
-  const ratios={a4:210/297,a3:297/420,letter:216/279,id:85.6/54,passport:125/88,photo4:1,visa:35/45};
-  const ratio=ratios[preset];
-  if(!ratio){
-    corners=[[0,0],[W,0],[0,H],[W,H]];
-  } else {
-    let cw=W*.85,ch=cw/ratio;
-    if(ch>H*.85){ch=H*.85;cw=ch*ratio;}
+  const r={a4:210/297,a3:297/420,letter:216/279,id:85.6/54,pass:125/88,p4x4:1,visa:35/45}[p];
+  if(!r){corners=[[0,0],[W,0],[0,H],[W,H]];}
+  else{
+    let cw=W*.85,ch=cw/r;if(ch>H*.85){ch=H*.85;cw=ch*r;}
     const x=(W-cw)/2,y=(H-ch)/2;
     corners=[[x,y],[x+cw,y],[x,y+ch],[x+cw,y+ch]];
   }
-  updateHandles();
-  toast('📐 '+preset.toUpperCase(),'ok');
+  updateCropHandles();toast('📐 '+p.toUpperCase(),'ok');
 }
 
-// Bilinear perspective transform (simple crop for now, real perspective needs WebGL/matrix)
-function applyPerspective(){
-  if(!sourceImg){ toast('Aucune image','err'); return; }
-  // Calculate bounding box of corners
+function applyCrop(){
+  if(!sourceImg){toast('Aucune image','err');return;}
   const xs=corners.map(c=>c[0]),ys=corners.map(c=>c[1]);
   const minX=Math.min(...xs),minY=Math.min(...ys);
-  const maxX=Math.max(...xs),maxY=Math.max(...ys);
-  const w=Math.round(maxX-minX),h=Math.round(maxY-minY);
-  if(w<10||h<10){ toast('Zone trop petite','err'); return; }
-
-  const out=document.createElement('canvas');
-  out.width=w;out.height=h;
+  const w=Math.round(Math.max(...xs)-minX),h=Math.round(Math.max(...ys)-minY);
+  if(w<10||h<10){toast('Zone trop petite','err');return;}
+  const out=document.createElement('canvas');out.width=w;out.height=h;
   const ctx=out.getContext('2d');
-
-  // Perspective warp using putImageData for each pixel (proper bilinear)
-  const srcCtx=imgToCanvas(sourceImg).getContext('2d');
-  const srcData=srcCtx.getImageData(0,0,sourceImg.width,sourceImg.height);
-  const outData=ctx.createImageData(w,h);
-
-  // TL=corners[0], TR=corners[1], BL=corners[2], BR=corners[3]
+  // Perspective bilinear warp
+  const sc=i2c(sourceImg);
+  const srcD=sc.getContext('2d').getImageData(0,0,sourceImg.width,sourceImg.height);
+  const outD=ctx.createImageData(w,h);
   const [tl,tr,bl,br]=corners;
-  for(let y=0;y<h;y++){
-    const t=y/h;
-    for(let x=0;x<w;x++){
-      const s=x/w;
-      // Bilinear interpolation
+  for(let y=0;y<h;y++){const t=y/h;
+    for(let x=0;x<w;x++){const s=x/w;
       const sx=(1-t)*((1-s)*tl[0]+s*tr[0])+t*((1-s)*bl[0]+s*br[0]);
       const sy=(1-t)*((1-s)*tl[1]+s*tr[1])+t*((1-s)*bl[1]+s*br[1]);
       const ix=Math.round(sx),iy=Math.round(sy);
       if(ix>=0&&ix<sourceImg.width&&iy>=0&&iy<sourceImg.height){
-        const si=(iy*sourceImg.width+ix)*4;
-        const di=(y*w+x)*4;
-        outData.data[di]=srcData.data[si];
-        outData.data[di+1]=srcData.data[si+1];
-        outData.data[di+2]=srcData.data[si+2];
-        outData.data[di+3]=srcData.data[si+3];
+        const si=(iy*sourceImg.width+ix)*4,di=(y*w+x)*4;
+        outD.data[di]=srcD.data[si];outD.data[di+1]=srcD.data[si+1];
+        outD.data[di+2]=srcD.data[si+2];outD.data[di+3]=srcD.data[si+3];
       }
     }
   }
-  ctx.putImageData(outData,0,0);
-
+  ctx.putImageData(outD,0,0);
   const url=out.toDataURL('image/jpeg',.95);
   const img=new Image();
-  img.onload=()=>{ sourceImg=img; workCanvas=out; toast('✅ Recadrage appliqué','ok'); goPanel('edit'); };
+  img.onload=()=>{sourceImg=img;workCanvas=out;toast('✅ Recadrage appliqué','ok');goPanel('edit');};
   img.src=url;
 }
 
-// ═══════════════════════════════════════════
-// EDIT / FILTERS
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
+// EDIT / FILTERS + OpenCV image enhancement
+// ══════════════════════════════════════════════
 function initEdit(){
-  if(!sourceImg){ document.getElementById('edit-empty').style.display='flex'; return; }
-  document.getElementById('edit-empty').style.display='none';
-  renderEdit();
-  initAnnotCanvas();
+  if(!sourceImg){document.getElementById('edit-e').style.display='flex';return;}
+  document.getElementById('edit-e').style.display='none';
+  renderEdit();initAnnot();
 }
 
 function renderEdit(){
   if(!sourceImg) return;
-  const wrap=document.querySelector('.edit-canvas-area');
-  const canvas=document.getElementById('edit-canvas');
+  const wrap=document.querySelector('.editarea');
+  const canvas=document.getElementById('ec');
   const maxW=wrap.clientWidth-4,maxH=wrap.clientHeight-4;
   const s=Math.min(maxW/sourceImg.width,maxH/sourceImg.height,1);
   canvas.width=sourceImg.width;canvas.height=sourceImg.height;
-  canvas.style.width=(sourceImg.width*s)+'px';
-  canvas.style.height=(sourceImg.height*s)+'px';
-  applyFilters(canvas,sourceImg);
-  workCanvas=canvas;
-  syncAnnotCanvas(s);
+  canvas.style.width=(sourceImg.width*s)+'px';canvas.style.height=(sourceImg.height*s)+'px';
+  applyFilt(canvas,sourceImg);
+  workCanvas=canvas;syncAnnot(s);
 }
 
-function applyFilters(canvas,img){
+function applyFilt(canvas,img){
   const ctx=canvas.getContext('2d');
   const W=canvas.width,H=canvas.height;
   ctx.save();
   ctx.translate(W/2,H/2);ctx.rotate(adjRo*Math.PI/180);ctx.translate(-W/2,-H/2);
-  ctx.drawImage(img,0,0,W,H);
-  ctx.restore();
-  const id=ctx.getImageData(0,0,W,H);
-  const d=id.data;
+  ctx.drawImage(img,0,0,W,H);ctx.restore();
+  // Use OpenCV for advanced filters if available
+  if(cvReady&&(activeFilter==='magic'||activeFilter==='bw'||activeFilter==='denoise')){
+    try{
+      const src=cv.imread(canvas);
+      const dst=new cv.Mat();
+      if(activeFilter==='magic'){
+        // Adaptive thresholding for document enhancement
+        const gray=new cv.Mat();cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);
+        cv.adaptiveThreshold(gray,dst,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,cv.THRESH_BINARY,11,2);
+        cv.cvtColor(dst,src,cv.COLOR_GRAY2RGBA);cv.imshow(canvas,src);
+        gray.delete();dst.delete();src.delete();return;
+      }else if(activeFilter==='bw'){
+        const gray=new cv.Mat();cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);
+        cv.threshold(gray,dst,127,255,cv.THRESH_BINARY);
+        cv.cvtColor(dst,src,cv.COLOR_GRAY2RGBA);cv.imshow(canvas,src);
+        gray.delete();dst.delete();src.delete();return;
+      }else if(activeFilter==='denoise'){
+        cv.fastNlMeansDenoisingColored(src,dst);
+        cv.imshow(canvas,dst);dst.delete();src.delete();return;
+      }
+      dst.delete();src.delete();
+    }catch(e){}
+  }
+  // JS fallback filters
+  const id=ctx.getImageData(0,0,W,H);const d=id.data;
   const br=adjBr*2.55;
   const fac=(259*(adjCo+255))/(255*(259-adjCo));
+  const satF=1+adjSat/100;
   for(let i=0;i<d.length;i+=4){
     let r=d[i],g=d[i+1],b=d[i+2];
+    // Brightness + Contrast
     r+=br;g+=br;b+=br;
     r=fac*(r-128)+128;g=fac*(g-128)+128;b=fac*(b-128)+128;
-    if(activeFilter==='bw'){const gr=.299*r+.587*g+.114*b;r=g=b=gr>128?255:0;}
-    else if(activeFilter==='gray'){const gr=.299*r+.587*g+.114*b;r=g=b=gr;}
-    else if(activeFilter==='magic'){
+    // Saturation
+    const gray=.299*r+.587*g+.114*b;
+    r=gray+satF*(r-gray);g=gray+satF*(g-gray);b=gray+satF*(b-gray);
+    // Filters
+    if(activeFilter==='gray'||activeFilter==='bw'){
       const gr=.299*r+.587*g+.114*b;
-      if(gr>180){r=Math.min(255,r+50);g=Math.min(255,g+50);b=Math.min(255,b+50);}
-      else if(gr<80){r=Math.max(0,r-50);g=Math.max(0,g-50);b=Math.max(0,b-50);}
-    }
-    else if(activeFilter==='sharp'){
-      const sh=1+adjSh*.2;
-      r=Math.min(255,Math.max(0,sh*r-(sh-1)*128));
-      g=Math.min(255,Math.max(0,sh*g-(sh-1)*128));
-      b=Math.min(255,Math.max(0,sh*b-(sh-1)*128));
-    }
-    else if(activeFilter==='warm'){r=Math.min(255,r+20);b=Math.max(0,b-15);}
+      r=g=b=activeFilter==='bw'?(gr>127?255:0):gr;
+    }else if(activeFilter==='magic'){
+      // Histogram equalization approximation
+      const gr=.299*r+.587*g+.114*b;
+      const boost=gr>180?50:(gr<80?-50:0);
+      r+=boost;g+=boost;b+=boost;
+    }else if(activeFilter==='sharp'){
+      const sh=1+adjSh*.3;
+      r=sh*r-(sh-1)*128;g=sh*g-(sh-1)*128;b=sh*b-(sh-1)*128;
+    }else if(activeFilter==='warm'){r+=20;b-=15;}
+    else if(activeFilter==='cold'){b+=20;r-=15;}
     d[i]=Math.min(255,Math.max(0,r));
     d[i+1]=Math.min(255,Math.max(0,g));
     d[i+2]=Math.min(255,Math.max(0,b));
@@ -1189,187 +1595,164 @@ function applyFilters(canvas,img){
   ctx.putImageData(id,0,0);
 }
 
-function setFilt(f,el){
+function setF(f,el){
   activeFilter=f;
-  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');renderEdit();
 }
-
-function setAdj(t,v,vid,isDeg=false){
-  if(t==='br') adjBr=parseFloat(v);
-  if(t==='co') adjCo=parseFloat(v);
-  if(t==='sh') adjSh=parseFloat(v);
-  if(t==='ro') adjRo=parseFloat(v);
-  document.getElementById(vid).textContent=isDeg?v+'°':v;
+function sa(t,v,vid,deg=false){
+  if(t==='br')adjBr=+v;if(t==='co')adjCo=+v;if(t==='sat')adjSat=+v;
+  if(t==='sh')adjSh=+v;if(t==='ro')adjRo=+v;
+  document.getElementById(vid).textContent=deg?v+'°':v;
   renderEdit();
 }
 
-// ─── ANNOTATIONS ──────────────────────────
-function initAnnotCanvas(){
-  const ec=document.getElementById('edit-canvas');
-  const ac=document.getElementById('annot-canvas');
+// ══════════════════════════════════════════════
+// ANNOTATIONS
+// ══════════════════════════════════════════════
+function initAnnot(){
+  const ec=document.getElementById('ec');
+  const ac=document.getElementById('ac');
   ac.width=ec.width;ac.height=ec.height;
   ac.style.width=ec.style.width;ac.style.height=ec.style.height;
-  ac.style.display='none';
-  annotCtx=ac.getContext('2d');
+  ac.style.display='none';annotCtx=ac.getContext('2d');
 }
-
-function syncAnnotCanvas(scale){
-  const ac=document.getElementById('annot-canvas');
-  ac.style.width=(sourceImg.width*scale)+'px';
-  ac.style.height=(sourceImg.height*scale)+'px';
+function syncAnnot(s){
+  const ac=document.getElementById('ac');
+  if(!sourceImg)return;
+  ac.style.width=(sourceImg.width*s)+'px';ac.style.height=(sourceImg.height*s)+'px';
   if(annotMode) ac.style.display='block';
 }
-
-function setAnnot(mode){
+function setAnnot(mode,el){
   annotMode=mode;
   document.querySelectorAll('.atbtn').forEach(b=>b.classList.remove('on'));
-  document.getElementById('at-'+mode==='pen'?'pen':mode==='hl'?'hl':mode==='rect'?'rect':mode==='txt'?'text':'arrow').classList.add('on');
-  const ac=document.getElementById('annot-canvas');
-  ac.style.display='block';
+  el.classList.add('on');
+  const ac=document.getElementById('ac');ac.style.display='block';
   ac.style.cursor=mode==='txt'?'text':'crosshair';
-  toast('✏️ Mode: '+mode,'info');
-  setupAnnotEvents(ac);
+  if(mode==='txt'){setupAnnotEvents(ac);return;}
+  setupAnnotEvents(ac);toast('✏️ '+mode,'info');
 }
-
 function setupAnnotEvents(ac){
   ac.onpointerdown=e=>{
-    if(annotMode==='txt'){
-      openModal('txt-modal');
-      const r=ac.getBoundingClientRect();
-      const sx=(e.clientX-r.left)/parseFloat(ac.style.width)*ac.width;
-      const sy=(e.clientY-r.top)/parseFloat(ac.style.height)*ac.height;
-      annotStart={x:sx,y:sy};
-      return;
-    }
-    e.preventDefault();ac.setPointerCapture(e.pointerId);
-    annotPainting=true;
+    if(annotMode==='txt'){openModal('txt-modal');const r=ac.getBoundingClientRect();annotTmpStart={x:(e.clientX-r.left)/parseFloat(ac.style.width)*ac.width,y:(e.clientY-r.top)/parseFloat(ac.style.height)*ac.height};return;}
+    e.preventDefault();ac.setPointerCapture(e.pointerId);annPainting=true;
     const r=ac.getBoundingClientRect();
-    annotStart={x:(e.clientX-r.left)/parseFloat(ac.style.width)*ac.width,
-                y:(e.clientY-r.top)/parseFloat(ac.style.height)*ac.height};
+    annStart={x:(e.clientX-r.left)/parseFloat(ac.style.width)*ac.width,y:(e.clientY-r.top)/parseFloat(ac.style.height)*ac.height};
     if(annotMode==='pen'||annotMode==='hl'){
-      annotCtx.beginPath();
-      annotCtx.strokeStyle=annotColor;
-      annotCtx.lineWidth=annotMode==='hl'?annotW*4:annotW;
-      annotCtx.globalAlpha=annotMode==='hl'?.4:1;
-      annotCtx.lineCap='round';
-      annotCtx.moveTo(annotStart.x,annotStart.y);
+      annotCtx.beginPath();annotCtx.strokeStyle=annotColor;
+      annotCtx.lineWidth=annotMode==='hl'?annotW*5:annotW;
+      annotCtx.globalAlpha=annotMode==='hl'?.4:1;annotCtx.lineCap='round';
+      annotCtx.moveTo(annStart.x,annStart.y);
     }
   };
   ac.onpointermove=e=>{
-    if(!annotPainting) return;
-    e.preventDefault();
+    if(!annPainting)return;e.preventDefault();
     const r=ac.getBoundingClientRect();
     const cx=(e.clientX-r.left)/parseFloat(ac.style.width)*ac.width;
     const cy=(e.clientY-r.top)/parseFloat(ac.style.height)*ac.height;
-    if(annotMode==='pen'||annotMode==='hl'){
-      annotCtx.lineTo(cx,cy);annotCtx.stroke();
-    } else if(annotMode==='rect'){
-      // Redraw on temp
-      annotCtx.clearRect(0,0,ac.width,ac.height);
-      redrawAnnotations();
-      annotCtx.strokeStyle=annotColor;
-      annotCtx.lineWidth=annotW;
-      annotCtx.globalAlpha=1;
-      annotCtx.strokeRect(annotStart.x,annotStart.y,cx-annotStart.x,cy-annotStart.y);
-    } else if(annotMode==='arrow'){
-      annotCtx.clearRect(0,0,ac.width,ac.height);
-      redrawAnnotations();
-      drawArrow(annotStart.x,annotStart.y,cx,cy,annotColor,annotW);
+    if(annotMode==='pen'||annotMode==='hl'){annotCtx.lineTo(cx,cy);annotCtx.stroke();}
+    else{
+      annotCtx.clearRect(0,0,ac.width,ac.height);redrawAnnot();
+      annotCtx.strokeStyle=annotColor;annotCtx.lineWidth=annotW;annotCtx.globalAlpha=1;
+      if(annotMode==='rect') annotCtx.strokeRect(annStart.x,annStart.y,cx-annStart.x,cy-annStart.y);
+      else if(annotMode==='arrow') drawArrow(annStart.x,annStart.y,cx,cy);
     }
   };
   ac.onpointerup=e=>{
-    if(!annotPainting) return;
-    annotPainting=false;
-    annotCtx.globalAlpha=1;
+    if(!annPainting)return;annPainting=false;annotCtx.globalAlpha=1;
     const r=ac.getBoundingClientRect();
     const cx=(e.clientX-r.left)/parseFloat(ac.style.width)*ac.width;
     const cy=(e.clientY-r.top)/parseFloat(ac.style.height)*ac.height;
-    annotations.push({type:annotMode,color:annotColor,w:annotW,start:annotStart,end:{x:cx,y:cy}});
+    annotations.push({type:annotMode,c:annotColor,w:annotW,s:{...annStart},e:{x:cx,y:cy}});
   };
 }
-
-function drawArrow(x1,y1,x2,y2,color,w){
-  annotCtx.strokeStyle=color;annotCtx.fillStyle=color;
-  annotCtx.lineWidth=w;annotCtx.globalAlpha=1;
+function drawArrow(x1,y1,x2,y2){
+  annotCtx.strokeStyle=annotColor;annotCtx.fillStyle=annotColor;
+  annotCtx.lineWidth=annotW;annotCtx.globalAlpha=1;annotCtx.lineCap='round';
   annotCtx.beginPath();annotCtx.moveTo(x1,y1);annotCtx.lineTo(x2,y2);annotCtx.stroke();
-  const angle=Math.atan2(y2-y1,x2-x1);
-  const hs=12+w;
-  annotCtx.beginPath();
-  annotCtx.moveTo(x2,y2);
-  annotCtx.lineTo(x2-hs*Math.cos(angle-Math.PI/6),y2-hs*Math.sin(angle-Math.PI/6));
-  annotCtx.lineTo(x2-hs*Math.cos(angle+Math.PI/6),y2-hs*Math.sin(angle+Math.PI/6));
+  const a=Math.atan2(y2-y1,x2-x1);const hs=12+annotW;
+  annotCtx.beginPath();annotCtx.moveTo(x2,y2);
+  annotCtx.lineTo(x2-hs*Math.cos(a-Math.PI/6),y2-hs*Math.sin(a-Math.PI/6));
+  annotCtx.lineTo(x2-hs*Math.cos(a+Math.PI/6),y2-hs*Math.sin(a+Math.PI/6));
   annotCtx.closePath();annotCtx.fill();
 }
-
-function redrawAnnotations(){
+function redrawAnnot(){
   annotations.forEach(a=>{
-    annotCtx.strokeStyle=a.color;annotCtx.fillStyle=a.color;
-    annotCtx.lineWidth=a.w;annotCtx.lineCap='round';
-    if(a.type==='rect'){
-      annotCtx.globalAlpha=1;
-      annotCtx.strokeRect(a.start.x,a.start.y,a.end.x-a.start.x,a.end.y-a.start.y);
-    } else if(a.type==='arrow'){
-      drawArrow(a.start.x,a.start.y,a.end.x,a.end.y,a.color,a.w);
-    } else if(a.type==='txt'&&a.text){
-      annotCtx.globalAlpha=1;annotCtx.font=`${a.w*6+14}px Outfit`;
-      annotCtx.fillText(a.text,a.start.x,a.start.y);
-    }
+    annotCtx.strokeStyle=a.c;annotCtx.fillStyle=a.c;annotCtx.lineWidth=a.w;annotCtx.lineCap='round';
+    if(a.type==='rect'){annotCtx.globalAlpha=1;annotCtx.strokeRect(a.s.x,a.s.y,a.e.x-a.s.x,a.e.y-a.s.y);}
+    else if(a.type==='arrow'){ const oa=annotColor,ow=annotW;annotColor=a.c;annotW=a.w;drawArrow(a.s.x,a.s.y,a.e.x,a.e.y);annotColor=oa;annotW=ow; }
+    else if(a.type==='txt'&&a.txt){annotCtx.globalAlpha=1;annotCtx.font=`${a.size||24}px Outfit`;annotCtx.fillText(a.txt,a.s.x,a.s.y);}
   });
 }
-
-function clearAnnot(){
-  annotations=[];
-  if(annotCtx) annotCtx.clearRect(0,0,document.getElementById('annot-canvas').width,document.getElementById('annot-canvas').height);
-}
-
-function setAnnotColor(el){
-  annotColor=el.dataset.c;
-  document.querySelectorAll('#color-row .color-dot').forEach(d=>d.classList.remove('on'));
-  el.classList.add('on');
-}
-
-function confirmAnnotText(){
-  const txt=document.getElementById('txt-input').value.trim();
-  if(txt&&annotStart){
+function clearAnnot(){annotations=[];if(annotCtx) annotCtx.clearRect(0,0,document.getElementById('ac').width,document.getElementById('ac').height);}
+function setAC(el){annotColor=el.dataset.c;document.querySelectorAll('#cdots .cd').forEach(d=>d.classList.remove('on'));el.classList.add('on');}
+function confirmTxt(){
+  const txt=document.getElementById('txt-in').value.trim();
+  const size=parseInt(document.getElementById('txt-size').value)||24;
+  if(txt&&annotTmpStart){
     annotCtx.fillStyle=annotColor;annotCtx.globalAlpha=1;
-    annotCtx.font=`${annotW*6+14}px Outfit`;
-    annotCtx.fillText(txt,annotStart.x,annotStart.y);
-    annotations.push({type:'txt',color:annotColor,w:annotW,start:{...annotStart},text:txt});
+    annotCtx.font=`${size}px Outfit`;annotCtx.fillText(txt,annotTmpStart.x,annotTmpStart.y);
+    annotations.push({type:'txt',c:annotColor,w:annotW,s:{...annotTmpStart},txt,size});
   }
-  closeModal('txt-modal');
-  document.getElementById('txt-input').value='';
+  closeModal('txt-modal');document.getElementById('txt-in').value='';
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
+// WATERMARK
+// ══════════════════════════════════════════════
+function applyWM(){
+  const wmTxt=document.getElementById('wm-txt').value.trim();if(!wmTxt||!sourceImg){toast('Entrez un texte','err');return;}
+  applyWMtoCanvas(workCanvas||i2c(sourceImg),wmTxt,wmOp);
+  const url=(workCanvas||i2c(sourceImg)).toDataURL('image/jpeg',.95);
+  const img=new Image();img.onload=()=>{sourceImg=img;workCanvas=i2c(img);renderEdit();};img.src=url;
+  toast('🔒 Filigrane appliqué','ok');
+}
+function applySecWM(type){
+  const txt=document.getElementById('sec-wm').value.trim();if(!txt||!sourceImg){toast('Scannez d\'abord','err');return;}
+  const c=getFinal();if(!c) return;
+  applyWMtoCanvas(c,txt,0.25,type);
+  const url=c.toDataURL();const img=new Image();img.onload=()=>{sourceImg=img;workCanvas=i2c(img);renderEdit();toast('💧 Filigrane appliqué','ok');};img.src=url;
+}
+function applyWMtoCanvas(canvas,txt,op,type='diagonal'){
+  const ctx=canvas.getContext('2d');const W=canvas.width,H=canvas.height;
+  const fs=Math.max(18,W/14);
+  ctx.save();ctx.globalAlpha=op;ctx.fillStyle='rgba(200,50,50,0.8)';
+  ctx.font=`bold ${fs}px Outfit`;
+  if(type==='diagonal'){
+    ctx.translate(W/2,H/2);ctx.rotate(-Math.PI/4);
+    const tw=ctx.measureText(txt).width;
+    for(let y=-H;y<H;y+=fs*3.5) for(let x=-W;x<W;x+=tw+60) ctx.fillText(txt,x,y);
+  }else if(type==='grid'){
+    const tw=ctx.measureText(txt).width;
+    for(let y=fs;y<H;y+=fs*4) for(let x=10;x<W;x+=tw+40) ctx.fillText(txt,x,y);
+  }else{ ctx.translate(W/2,H/2);ctx.rotate(-Math.PI/5);ctx.fillText(txt,-ctx.measureText(txt).width/2,0); }
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════════
 // EXPORT
-// ═══════════════════════════════════════════
-function getFinalCanvas(){
+// ══════════════════════════════════════════════
+function getFinal(){
   if(!sourceImg) return null;
   const out=document.createElement('canvas');
   out.width=sourceImg.width;out.height=sourceImg.height;
-  applyFilters(out,sourceImg);
-  // Merge annotations
-  const ac=document.getElementById('annot-canvas');
-  if(ac&&ac.style.display!=='none'&&annotations.length>0){
+  applyFilt(out,sourceImg);
+  const ac=document.getElementById('ac');
+  if(ac&&ac.style.display!=='none'&&annotations.length>0)
     out.getContext('2d').drawImage(ac,0,0,sourceImg.width,sourceImg.height);
-  }
   return out;
 }
 
-function exportImg(fmt){
-  const out=getFinalCanvas();
-  if(!out){ toast('Aucune image','err'); return; }
-  if(wmText) applyWmToCanvas(out);
+function xImg(fmt){
+  const out=getFinal();if(!out){toast('Aucune image','err');return;}
   if(fmt==='pdf'){
     const {jsPDF}=window.jspdf;
-    const pw=210,ph=297;
-    const doc=new jsPDF({unit:'mm',format:'a4'});
+    const pw=210,ph=297;const doc=new jsPDF({unit:'mm',format:'a4'});
     const ratio=Math.min(pw/out.width*3.7795,ph/out.height*3.7795);
     const dw=out.width*ratio/3.7795,dh=out.height*ratio/3.7795;
     doc.addImage(out.toDataURL('image/jpeg',.95),'JPEG',(pw-dw)/2,(ph-dh)/2,dw,dh);
     doc.save('scanpro_'+Date.now()+'.pdf');
-  } else {
+  }else{
     const a=document.createElement('a');
     a.href=out.toDataURL(fmt==='png'?'image/png':'image/jpeg',.95);
     a.download='scanpro_'+Date.now()+'.'+fmt;a.click();
@@ -1378,208 +1761,68 @@ function exportImg(fmt){
 }
 
 function addToPages(){
-  const out=getFinalCanvas();
-  if(!out){ toast('Aucune image','err'); return; }
-  if(wmText) applyWmToCanvas(out);
-  pages.push(out.toDataURL('image/jpeg',.9));
-  updatePagesUI();
-  toast('➕ Page '+(pages.length)+' ajoutée','ok');
+  const out=getFinal();if(!out){toast('Aucune image','err');return;}
+  // Save edited state back to session capture
+  const sess = sessions[currentSession];
+  if(sess.captures[currentCapture]) {
+    sess.captures[currentCapture].edited = out.toDataURL('image/jpeg',.9);
+    renderSessionStrip();
+  }
+  pages.push(out.toDataURL('image/jpeg',.9));updatePagesUI();
+  toast('➕ Page '+pages.length+' ajoutée','ok');
 }
 
 function saveToFolder(){
-  const out=getFinalCanvas();
-  if(!out){ toast('Aucune image','err'); return; }
+  const out=getFinal();if(!out) return;
   const url=out.toDataURL('image/jpeg',.9);
-  const name='Scan_'+new Date().toLocaleDateString('fr-FR')+'_'+Date.now();
-  const key=activeFolder||'Tous les docs';
+  const name='Scan_'+new Date().toLocaleDateString('fr-FR');
+  const key=activeFolder||'Tous';
   if(!folders[key]) folders[key]=[];
-  folders[key].push({url,name,date:new Date().toLocaleDateString('fr-FR')});
-  folders['Tous les docs'].push({url,name,date:new Date().toLocaleDateString('fr-FR')});
+  const item={url,name,date:new Date().toLocaleDateString('fr-FR'),ocrText:document.getElementById('ocrtxt').value||''};
+  folders[key].push(item);folders['Tous'].push(item);
+  docIndex.push({...item,folder:key});
   toast('📁 Enregistré dans "'+key+'"','ok');
 }
 
-// ═══════════════════════════════════════════
-// WATERMARK
-// ═══════════════════════════════════════════
-let wmText='';
-function openWatermark(){ openModal('wm-modal'); }
-
-function applyWatermark(){
-  wmText=document.getElementById('wm-text').value.trim();
-  closeModal('wm-modal');
-  if(!sourceImg){ toast('Scannez d\'abord une image','err'); return; }
-  const out=getFinalCanvas();
-  applyWmToCanvas(out);
-  const url=out.toDataURL('image/jpeg',.95);
-  const img=new Image();img.onload=()=>{ sourceImg=img; workCanvas=out; renderEdit(); };
-  img.src=url;
-  toast('🔒 Filigrane appliqué','ok');
+function exportWithPwd(){
+  const pwd=document.getElementById('pdf-pwd').value;
+  const pwd2=document.getElementById('pdf-pwd2').value;
+  if(!pwd||pwd!==pwd2){toast('Mots de passe différents','err');return;}
+  if(!sourceImg){toast('Aucune image','err');return;}
+  const out=getFinal();
+  const {jsPDF}=window.jspdf;
+  const pw=210,ph=297;
+  const doc=new jsPDF({unit:'mm',format:'a4',encryption:{userPassword:pwd,ownerPassword:pwd+'_owner',userPermissions:['print','copy']}});
+  const ratio=Math.min(pw/out.width*3.7795,ph/out.height*3.7795);
+  const dw=out.width*ratio/3.7795,dh=out.height*ratio/3.7795;
+  doc.addImage(out.toDataURL('image/jpeg',.95),'JPEG',(pw-dw)/2,(ph-dh)/2,dw,dh);
+  doc.save('scanpro_secure_'+Date.now()+'.pdf');
+  toast('🔑 PDF protégé exporté','ok');
 }
 
-function applyWmToCanvas(canvas){
-  if(!wmText) return;
-  const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
-  const fontSize=Math.max(20,W/15);
-  ctx.save();
-  ctx.globalAlpha=wmOpacity;
-  ctx.fillStyle=wmColor;
-  ctx.font=`bold ${fontSize}px Outfit`;
-  ctx.translate(W/2,H/2);ctx.rotate(-Math.PI/4);
-  const tw=ctx.measureText(wmText).width;
-  for(let y=-H;y<H;y+=fontSize*3){
-    for(let x=-W;x<W;x+=tw+40){
-      ctx.fillText(wmText,x,y);
-    }
-  }
-  ctx.restore();
-}
-
-// ═══════════════════════════════════════════
-// OCR + TRANSLATE
-// ═══════════════════════════════════════════
-function initOcr(){
-  if(!sourceImg){ document.getElementById('ocr-empty').style.display='flex'; return; }
-  document.getElementById('ocr-empty').style.display='none';
-  document.getElementById('ocr-hint').style.display='block';
-  renderOcrCanvas();
-  setupOcrSel();
-}
-
-function renderOcrCanvas(){
-  const wrap=document.getElementById('ocr-img-wrap');
-  const canvas=document.getElementById('ocr-canvas');
-  const s=Math.min((wrap.clientWidth-4)/sourceImg.width,(wrap.clientHeight-60)/sourceImg.height,1);
-  canvas.width=sourceImg.width;canvas.height=sourceImg.height;
-  canvas.style.width=(sourceImg.width*s)+'px';canvas.style.height=(sourceImg.height*s)+'px';
-  canvas.getContext('2d').drawImage(sourceImg,0,0);
-}
-
-function setupOcrSel(){
-  const canvas=document.getElementById('ocr-canvas');
-  let dragging=false,sx,sy;
-  const down=e=>{ e.preventDefault();const p=getPP(e,canvas);sx=p.x;sy=p.y;dragging=true; };
-  const move=e=>{ if(!dragging) return;e.preventDefault();
-    const p=getPP(e,canvas);
-    const ox=Math.min(sx,p.x),oy=Math.min(sy,p.y);
-    const ow=Math.abs(p.x-sx),oh=Math.abs(p.y-sy);
-    const sel=document.getElementById('ocr-sel');
-    const cr=canvas.getBoundingClientRect();
-    const wr=document.getElementById('ocr-img-wrap').getBoundingClientRect();
-    sel.style.cssText=`display:block;left:${cr.left-wr.left+ox}px;top:${cr.top-wr.top+oy}px;width:${ow}px;height:${oh}px;`;
-    ocrRect={x:ox,y:oy,w:ow,h:oh};
-  };
-  const up=async()=>{ if(!dragging) return;dragging=false;
-    if(ocrRect&&ocrRect.w>15&&ocrRect.h>15) await ocrZone(ocrRect);
-  };
-  canvas.addEventListener('mousedown',down);canvas.addEventListener('mousemove',move);canvas.addEventListener('mouseup',up);
-  canvas.addEventListener('touchstart',down,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});canvas.addEventListener('touchend',up);
-}
-
-function getPP(e,el){
-  const r=el.getBoundingClientRect();
-  const src=e.touches?e.touches[0]:e;
-  return {x:src.clientX-r.left,y:src.clientY-r.top};
-}
-
-async function ocrZone(rect){
-  const canvas=document.getElementById('ocr-canvas');
-  const sx=sourceImg.width/canvas.clientWidth,sy=sourceImg.height/canvas.clientHeight;
-  const tmp=document.createElement('canvas');
-  tmp.width=Math.round(rect.w*sx);tmp.height=Math.round(rect.h*sy);
-  tmp.getContext('2d').drawImage(sourceImg,rect.x*sx,rect.y*sy,tmp.width,tmp.height,0,0,tmp.width,tmp.height);
-  await runOCR(tmp);
-}
-
-async function ocrFull(){
-  if(!sourceImg){ toast('Scannez d\'abord','err'); return; }
-  const c=imgToCanvas(sourceImg);
-  await runOCR(c);
-}
-
-async function runOCR(source){
-  showProg('🧠 OCR en cours...','Reconnaissance du texte');
-  try{
-    const lang=document.getElementById('ocr-lang').value;
-    const {data:{text}}=await Tesseract.recognize(source,lang,{
-      logger:m=>{ if(m.status==='recognizing text') setProg(m.progress*100); }
-    });
-    hideProg();
-    const result=text.trim()||'Aucun texte détecté.';
-    document.getElementById('ocr-text').value=result;
-    document.getElementById('ocr-sel').style.display='none';
-    ocrRect=null;
-    toast('✅ '+result.length+' caractères','ok');
-  }catch(e){ hideProg();toast('❌ '+e.message,'err'); }
-}
-
-function switchOcrTab(t){
-  document.querySelectorAll('.ocr-tab').forEach(b=>b.classList.remove('on'));
-  document.querySelectorAll('.ocr-pane').forEach(p=>p.classList.remove('on'));
-  document.getElementById('tab-'+t).classList.add('on');
-  document.getElementById('pane-'+t).classList.add('on');
-}
-
-async function doTranslate(){
-  const text=document.getElementById('ocr-text').value.trim();
-  if(!text){ toast('Lancez d\'abord l\'OCR','err'); return; }
-  switchOcrTab('trans');
-  document.getElementById('trans-text').value='⏳ Traduction...';
-  const from=document.getElementById('ocr-lang').value.substring(0,2);
-  const to=document.getElementById('trans-to').value;
-  // Split into chunks
-  const words=text.split(' ');
-  const chunks=[];let chunk='';
-  words.forEach(w=>{ if((chunk+' '+w).length>400){ chunks.push(chunk.trim());chunk=w; }else chunk+=' '+w; });
-  if(chunk) chunks.push(chunk.trim());
-  try{
-    const results=await Promise.all(chunks.map(c=>
-      fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(c)}&langpair=${from}|${to}`)
-        .then(r=>r.json()).then(d=>d.responseData.translatedText)
-    ));
-    document.getElementById('trans-text').value=results.join(' ');
-    toast('🌍 Traduction terminée','ok');
-  }catch(e){ document.getElementById('trans-text').value='';toast('❌ Erreur traduction','err'); }
-}
-
-function copyOcr(){
-  const t=document.getElementById('ocr-text').value;
-  if(!t){ toast('Aucun texte','err'); return; }
-  navigator.clipboard.writeText(t).then(()=>toast('📋 Copié !','ok'));
-}
-function exportOcrTxt(){
-  const t=document.getElementById('ocr-text').value;
-  if(!t){ toast('Aucun texte','err'); return; }
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([t],{type:'text/plain;charset=utf-8'}));
-  a.download='scanpro_ocr_'+Date.now()+'.txt';a.click();
-  toast('⬇️ Exporté','ok');
-}
-
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
 // PAGES
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
 function updatePagesUI(){
   document.getElementById('pg-n').textContent=pages.length;
-  const grid=document.getElementById('pages-grid');
-  const empty=document.getElementById('pages-empty');
+  const grid=document.getElementById('pggrid');
+  const empty=document.getElementById('pg-empty');
   empty.style.display=pages.length?'none':'block';
-  grid.querySelectorAll('.pcard').forEach(c=>c.remove());
+  grid.querySelectorAll('.pgcard').forEach(c=>c.remove());
   pages.forEach((url,i)=>{
-    const d=document.createElement('div');d.className='pcard';
-    d.innerHTML=`<img src="${url}" loading="lazy"><div class="pcard-foot"><span class="pcard-num">Page ${i+1}</span><button class="pdel" onclick="delPage(${i})">🗑️</button></div>`;
-    d.querySelector('img').onclick=()=>{ loadImgURL(url);goPanel('edit'); };
+    const d=document.createElement('div');d.className='pgcard';
+    d.innerHTML=`<img src="${url}" loading="lazy"><div class="pgcard-foot"><span class="pgnum">Page ${i+1}</span><button class="pgdel" onclick="delPg(${i})">🗑️</button></div>`;
+    d.querySelector('img').onclick=()=>{loadImgURL(url);goPanel('edit');};
     grid.appendChild(d);
   });
 }
+function delPg(i){pages.splice(i,1);updatePagesUI();toast('🗑️ Page supprimée','');}
+function clearPages(){pages=[];updatePagesUI();toast('🗑️ Effacées','');}
 
-function delPage(i){ pages.splice(i,1);updatePagesUI();toast('🗑️ Supprimée',''); }
-function clearPages(){ pages=[];updatePagesUI();toast('🗑️ Effacées',''); }
-
-async function exportAll(fmt){
-  if(!pages.length){ toast('Aucune page','err'); return; }
+async function xAll(fmt){
+  if(!pages.length){toast('Aucune page','err');return;}
   if(fmt==='pdf'){
-    showProg('📄 Génération PDF...','');
+    showProg('📄 PDF multi-pages...','');
     const {jsPDF}=window.jspdf;
     const sz={a4:[210,297],a3:[297,420],letter:[216,279]};
     const [pw,ph]=sz[pdfFmt]||sz.a4;
@@ -1592,171 +1835,542 @@ async function exportAll(fmt){
       doc.addImage(pages[i],'JPEG',(pw-dw)/2,(ph-dh)/2,dw,dh);
     }
     hideProg();doc.save('scanpro_'+pages.length+'p_'+Date.now()+'.pdf');
-    toast('📄 PDF exporté','ok');
-  } else if(fmt==='word'){
+    toast('📄 PDF exporté ('+pages.length+' pages)','ok');
+  }else if(fmt==='word'){
     showProg('📝 Word...','');
     try{
       const ch=[];
       for(let i=0;i<pages.length;i++){
-        setProg((i/pages.length)*100);
-        const b64=pages[i].split(',')[1];
+        setProg((i/pages.length)*100);const b64=pages[i].split(',')[1];
         ch.push(new docx.Paragraph({children:[new docx.ImageRun({data:b64,transformation:{width:595,height:842},type:'jpg'})]}));
         if(i<pages.length-1) ch.push(new docx.Paragraph({pageBreakBefore:true,children:[]}));
       }
-      const d=new docx.Document({sections:[{children:ch}]});
-      const blob=await docx.Packer.toBlob(d);
+      const d2=new docx.Document({sections:[{children:ch}]});
+      const blob=await docx.Packer.toBlob(d2);
       const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='scanpro_'+Date.now()+'.docx';a.click();
       hideProg();toast('📝 Word exporté','ok');
-    }catch(e){ hideProg();toast('❌ '+e.message,'err'); }
-  } else {
-    pages.forEach((url,i)=>{ const a=document.createElement('a');a.href=url;a.download='scanpro_p'+(i+1)+'_'+Date.now()+'.'+fmt;a.click(); });
+    }catch(e){hideProg();toast('❌ '+e.message,'err');}
+  }else{
+    pages.forEach((url,i)=>{const a=document.createElement('a');a.href=url;a.download='scanpro_p'+(i+1)+'_'+Date.now()+'.'+fmt;a.click();});
     toast('⬇️ '+pages.length+' images','ok');
   }
 }
 
-// ═══════════════════════════════════════════
-// FOLDERS
-// ═══════════════════════════════════════════
-function renderFolders(){
-  const list=document.getElementById('folder-list');
-  list.innerHTML='';
-  Object.keys(folders).forEach(name=>{
-    const d=document.createElement('div');d.className='folder-item'+(name===activeFolder?' on':'');
-    d.innerHTML=`<span class="folder-icon">📁</span>${name} <span style="margin-left:auto;font-size:10px;color:var(--muted)">${folders[name].length}</span>`;
-    d.onclick=()=>{ activeFolder=name;renderFolders();renderFolderContent(name); };
-    list.appendChild(d);
-  });
-  if(activeFolder) renderFolderContent(activeFolder);
+// ══════════════════════════════════════════════
+// OCR + TRANSLATE + BUSINESS CARD
+// ══════════════════════════════════════════════
+function initOcr(){
+  if(!sourceImg){document.getElementById('ocr-e').style.display='flex';return;}
+  document.getElementById('ocr-e').style.display='none';
+  document.getElementById('ocrhint').style.display='block';
+  renderOcrCanvas();setupOcrSel();
 }
-
-function renderFolderContent(name){
-  const content=document.getElementById('folder-content');
-  content.innerHTML='';
-  const items=folders[name]||[];
-  if(!items.length){
-    content.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:60px 20px"><div style="font-size:40px;opacity:.2;margin-bottom:12px">📂</div><p style="font-size:13px">Dossier vide</p></div>';
-    return;
-  }
-  items.forEach((item,i)=>{
-    const d=document.createElement('div');d.className='fitem';
-    d.innerHTML=`<img src="${item.url}" loading="lazy"><div class="fitem-foot"><span class="fitem-name">${item.name}</span><span class="fitem-date">${item.date}</span></div>`;
-    d.querySelector('img').onclick=()=>{ loadImgURL(item.url);goPanel('edit'); };
-    content.appendChild(d);
-  });
-}
-
-function createFolder(){
-  const name=prompt('Nom du dossier :');
-  if(name&&name.trim()&&!folders[name.trim()]){
-    folders[name.trim()]=[];renderFolders();toast('📁 Dossier créé','ok');
-  }
-}
-
-// ═══════════════════════════════════════════
-// TOOLS
-// ═══════════════════════════════════════════
-function toolAction(tool){
-  const actions={
-    'img-pdf': ()=>{ if(sourceImg) exportImg('pdf'); else toast('Importez d\'abord une image','err'); },
-    'img-word': ()=>{ if(sourceImg){const out=getFinalCanvas();const b64=out.toDataURL('image/jpeg',.95).split(',')[1];const d=new docx.Document({sections:[{children:[new docx.Paragraph({children:[new docx.ImageRun({data:b64,transformation:{width:595,height:842},type:'jpg'})]})]}]});docx.Packer.toBlob(d).then(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='scanpro_'+Date.now()+'.docx';a.click();toast('📝 Word exporté','ok');});} else toast('Importez une image','err'); },
-    'img-txt': ()=>{ goPanel('ocr');ocrFull(); },
-    'translate': ()=>goPanel('ocr'),
-    'watermark': ()=>openWatermark(),
-    'sign': ()=>goPanel('sign'),
-    'annotate': ()=>goPanel('edit'),
-    'scan-id': ()=>{ triggerUpload();toast('📷 Importez une photo de CNI','info'); },
-    'id-photo': ()=>{ triggerUpload();toast('📷 Importez une photo ID','info'); },
-    'merge-pdf': ()=>{ if(pages.length>=2) exportAll('pdf'); else toast('Ajoutez au moins 2 pages','err'); },
-    'rotate-pdf': ()=>{ if(sourceImg){adjRo=(adjRo+90)%360;renderEdit();toast('🔄 Rotation +90°','ok');} else toast('Importez une image','err'); },
-    'compress': ()=>exportImg('jpeg'),
-    'scan-book': ()=>triggerUpload(),
-    'split-pdf': ()=>toast('💡 Séparez vos pages dans l\'onglet Pages','info'),
-    'pdf-word': ()=>toast('💡 Scannez le PDF et utilisez OCR → .txt','info'),
-    'pdf-jpg': ()=>{ if(pages.length) exportAll('jpeg'); else toast('Ajoutez des pages d\'abord','err'); },
-  };
-  if(actions[tool]) actions[tool]();
-  else toast('🔧 '+tool,'info');
-}
-
-// ═══════════════════════════════════════════
-// SIGNATURE
-// ═══════════════════════════════════════════
-function initSign(){
-  if(!sourceImg){ document.getElementById('sign-empty').style.display='flex'; return; }
-  document.getElementById('sign-empty').style.display='none';
-  const wrap=document.querySelector('.sign-doc')||document.getElementById('panel-sign').querySelector('div');
-  const canvas=document.getElementById('sign-doc-canvas');
+function renderOcrCanvas(){
+  const wrap=document.getElementById('ocrside');
+  const canvas=document.getElementById('oc');
   const s=Math.min((wrap.clientWidth-4)/sourceImg.width,(wrap.clientHeight-60)/sourceImg.height,1);
   canvas.width=sourceImg.width;canvas.height=sourceImg.height;
   canvas.style.width=(sourceImg.width*s)+'px';canvas.style.height=(sourceImg.height*s)+'px';
   canvas.getContext('2d').drawImage(sourceImg,0,0);
 }
+function setupOcrSel(){
+  const canvas=document.getElementById('oc');let dr=false,sx,sy;
+  const down=e=>{e.preventDefault();const p=gp(e,canvas);sx=p.x;sy=p.y;dr=true;};
+  const move=e=>{if(!dr)return;e.preventDefault();
+    const p=gp(e,canvas);
+    const ox=Math.min(sx,p.x),oy=Math.min(sy,p.y),ow=Math.abs(p.x-sx),oh=Math.abs(p.y-sy);
+    const sel=document.getElementById('osel');
+    const cr=canvas.getBoundingClientRect();const wr=document.getElementById('ocrside').getBoundingClientRect();
+    sel.style.cssText=`display:block;left:${cr.left-wr.left+ox}px;top:${cr.top-wr.top+oy}px;width:${ow}px;height:${oh}px;`;
+    ocrRect={x:ox,y:oy,w:ow,h:oh};
+  };
+  const up=async()=>{if(!dr)return;dr=false;if(ocrRect&&ocrRect.w>15&&ocrRect.h>15) await ocrZone(ocrRect);};
+  canvas.addEventListener('mousedown',down);canvas.addEventListener('mousemove',move);canvas.addEventListener('mouseup',up);
+  canvas.addEventListener('touchstart',down,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});canvas.addEventListener('touchend',up);
+}
+function gp(e,el){const r=el.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
 
-function openSignModal(){ openModal('sign-modal');initDrawPad(); }
+async function ocrZone(rect){
+  const canvas=document.getElementById('oc');
+  const sx=sourceImg.width/canvas.clientWidth,sy=sourceImg.height/canvas.clientHeight;
+  const tmp=document.createElement('canvas');
+  tmp.width=Math.round(rect.w*sx);tmp.height=Math.round(rect.h*sy);
+  tmp.getContext('2d').drawImage(sourceImg,rect.x*sx,rect.y*sy,tmp.width,tmp.height,0,0,tmp.width,tmp.height);
+  await runOCR(tmp);
+}
+async function ocrFull(){
+  if(!sourceImg){toast('Scannez d\'abord','err');return;}
+  await runOCR(i2c(sourceImg));
+}
+async function runOCR(src){
+  showProg('🧠 OCR en cours...','Reconnaissance du texte');
+  try{
+    const lang=document.getElementById('ocr-lang').value;
+    const{data:{text}}=await Tesseract.recognize(src,lang,{
+      logger:m=>{if(m.status==='recognizing text') setProg(m.progress*100);}
+    });
+    hideProg();
+    const result=text.trim()||'Aucun texte détecté.';
+    document.getElementById('ocrtxt').value=result;
+    document.getElementById('osel').style.display='none';ocrRect=null;
+    toast('✅ '+result.length+' caractères extraits','ok');
+  }catch(e){hideProg();toast('❌ '+e.message,'err');}
+}
+
+function switchOTab(t){
+  document.querySelectorAll('.ocrtab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.ocrpane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('tab-'+t).classList.add('on');
+  document.getElementById('opane-'+t).classList.add('on');
+}
+
+async function doTranslate(){
+  const text=document.getElementById('ocrtxt').value.trim();
+  if(!text){toast('Lancez d\'abord l\'OCR','err');return;}
+  switchOTab('tr');
+  document.getElementById('trtxt').value='⏳ Traduction en cours...';
+  const from=document.getElementById('ocr-lang').value.substring(0,2);
+  const to=document.getElementById('tr-to').value;
+  const words=text.split(' ');const chunks=[];let chunk='';
+  words.forEach(w=>{if((chunk+' '+w).length>400){chunks.push(chunk.trim());chunk=w;}else chunk+=' '+w;});
+  if(chunk) chunks.push(chunk.trim());
+  try{
+    const results=await Promise.all(chunks.map(c=>
+      fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(c)}&langpair=${from}|${to}`)
+        .then(r=>r.json()).then(d=>d.responseData.translatedText)
+    ));
+    document.getElementById('trtxt').value=results.join(' ');
+    toast('🌍 Traduction terminée','ok');
+  }catch(e){document.getElementById('trtxt').value='';toast('❌ Erreur traduction','err');}
+}
+
+// Business card detection
+async function detectBC(){
+  if(!sourceImg){toast('Scannez une carte de visite','err');return;}
+  showProg('🪪 Analyse carte de visite...','');
+  await runOCR(i2c(sourceImg));
+  hideProg();
+  const text=document.getElementById('ocrtxt').value;
+  // Parse with regex
+  const email=text.match(/[\w.-]+@[\w.-]+\.\w+/)?.[0]||'—';
+  const phone=text.match(/(?:\+?[\d\s\-().]{7,20})/)?.[0]?.trim()||'—';
+  const web=text.match(/(?:https?:\/\/|www\.)[^\s]+/)?.[0]||'—';
+  const lines=text.split('\n').filter(l=>l.trim().length>2);
+  const name=lines[0]?.trim()||'—';
+  const company=lines.find(l=>/(inc|sarl|sas|ltd|corp|group|co\.|société|enterprise)/i.test(l))?.trim()||'—';
+  document.getElementById('bc-name').textContent=name;
+  document.getElementById('bc-email').textContent=email;
+  document.getElementById('bc-phone').textContent=phone;
+  document.getElementById('bc-company').textContent=company;
+  document.getElementById('bc-web').textContent=web;
+  document.getElementById('bc-result').classList.add('show');
+  switchOTab('bc');toast('🪪 Carte de visite analysée','ok');
+}
+
+function saveContact(){
+  const name=document.getElementById('bc-name').textContent;
+  const email=document.getElementById('bc-email').textContent;
+  const phone=document.getElementById('bc-phone').textContent;
+  const vcard=`BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nEMAIL:${email}\nTEL:${phone}\nEND:VCARD`;
+  const a=document.createElement('a');
+  a.href='data:text/vcard;charset=utf-8,'+encodeURIComponent(vcard);
+  a.download=name.replace(/[^a-z0-9]/gi,'_')+'.vcf';a.click();
+  toast('💾 Contact enregistré (.vcf)','ok');
+}
+
+function copyOcr(){const t=document.getElementById('ocrtxt').value;if(!t)return;navigator.clipboard.writeText(t).then(()=>toast('📋 Copié','ok'));}
+function xOcrTxt(){
+  const t=document.getElementById('ocrtxt').value;if(!t)return;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/plain;charset=utf-8'}));
+  a.download='scanpro_ocr_'+Date.now()+'.txt';a.click();toast('⬇️ Exporté','ok');
+}
+
+// ══════════════════════════════════════════════
+// SHARE / QR CODE
+// ══════════════════════════════════════════════
+function openShare(){
+  if(!sourceImg){toast('Scannez d\'abord une image','err');return;}
+  openModal('share-modal');
+  const qrBox=document.getElementById('qr-box');qrBox.innerHTML='';
+  const out=getFinal();
+  if(out){
+    const dataURL=out.toDataURL('image/jpeg',.6);
+    try{
+      new QRCode(qrBox,{text:dataURL.substring(0,2000),width:200,height:200,colorDark:'#00e087',colorLight:'#0e0e1a'});
+    }catch(e){qrBox.innerHTML='<p style="color:var(--mt);font-size:12px;">QR généré pour le scan actuel</p>';}
+  }
+}
+
+function shareVia(type){
+  const out=getFinal();if(!out)return;
+  if(type==='download'){const a=document.createElement('a');a.href=out.toDataURL('image/jpeg',.9);a.download='scanpro_share_'+Date.now()+'.jpg';a.click();toast('⬇️ Image téléchargée','ok');}
+  else if(type==='copy'){out.toBlob(blob=>navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(()=>toast('📋 Image copiée','ok')).catch(()=>toast('❌ Non supporté','err')));}
+  else if(type==='native'){out.toBlob(async blob=>{try{await navigator.share({files:[new File([blob],'scanpro.jpg',{type:'image/jpeg'})]});}catch(e){toast('ℹ️ Utilisez Télécharger','info');}});}
+}
+
+// ══════════════════════════════════════════════
+// FOLDERS + SEARCH
+// ══════════════════════════════════════════════
+function renderFolders(){
+  const list=document.getElementById('fd-list');list.innerHTML='';
+  Object.keys(folders).forEach(name=>{
+    const d=document.createElement('div');d.className='fitem'+(name===activeFolder?' on':'');
+    d.innerHTML=`📁 ${name} <span style="margin-left:auto;font-size:10px;color:var(--mt)">${folders[name].length}</span>`;
+    d.onclick=()=>{activeFolder=name;renderFolders();renderFolderContent(name);};
+    list.appendChild(d);
+  });
+  if(activeFolder) renderFolderContent(activeFolder);
+}
+function renderFolderContent(name){
+  const content=document.getElementById('fd-content');content.innerHTML='';
+  const items=folders[name]||[];
+  if(!items.length){content.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--mt);padding:60px 20px"><div style="font-size:40px;opacity:.2;margin-bottom:12px">📂</div><p style="font-size:13px">Dossier vide</p></div>';return;}
+  items.forEach(item=>{
+    const d=document.createElement('div');d.className='ditem';
+    d.innerHTML=`<img src="${item.url}" loading="lazy"><div class="ditem-foot"><div class="ditem-name">${item.name}</div><div class="ditem-meta">${item.date}${item.ocrText?` · <span class="dtag">OCR</span>`:''}</div></div>`;
+    d.querySelector('img').onclick=()=>{loadImgURL(item.url);goPanel('edit');};
+    content.appendChild(d);
+  });
+}
+function newFolder(){const n=prompt('Nom du dossier :');if(n&&n.trim()&&!folders[n.trim()]){folders[n.trim()]=[];renderFolders();toast('📁 Dossier créé','ok');}}
+
+function searchDocs(q){
+  if(!q||q.length<2) return;
+  const results=docIndex.filter(d=>d.name.toLowerCase().includes(q.toLowerCase())||(d.ocrText&&d.ocrText.toLowerCase().includes(q.toLowerCase())));
+  if(results.length) toast(`🔍 ${results.length} document(s) trouvé(s)`,'info');
+}
+
+function smartSearch(){
+  const q=document.getElementById('smart-search').value.trim();
+  const container=document.getElementById('search-results');container.innerHTML='';
+  if(!q){toast('Entrez un mot clé','err');return;}
+  const results=docIndex.filter(d=>d.name.toLowerCase().includes(q.toLowerCase())||(d.ocrText&&d.ocrText.toLowerCase().includes(q.toLowerCase())));
+  if(!results.length){container.innerHTML='<p style="font-size:12px;color:var(--mt)">Aucun résultat</p>';return;}
+  results.forEach(item=>{
+    const d=document.createElement('div');
+    d.style.cssText='display:flex;align-items:center;gap:10px;padding:8px;background:var(--s2);border:1px solid var(--b1);border-radius:9px;cursor:pointer;';
+    d.innerHTML=`<img src="${item.url}" style="width:40px;height:50px;object-fit:cover;border-radius:5px;"><div><div style="font-size:12px;font-weight:700">${item.name}</div><div style="font-size:10px;color:var(--mt)">${item.date} · ${item.folder}</div></div>`;
+    d.onclick=()=>{loadImgURL(item.url);goPanel('edit');};
+    container.appendChild(d);
+  });
+  toast(`🔍 ${results.length} résultat(s)`,'ok');
+}
+
+// ══════════════════════════════════════════════
+// SIGN
+// ══════════════════════════════════════════════
+function openSignModal(){openModal('sign-modal');initDrawPad();}
 function initDrawPad(){
-  const canvas=document.getElementById('draw-canvas');
+  const canvas=document.getElementById('draw-c');
   drawCtx=canvas.getContext('2d');
   drawCtx.fillStyle='white';drawCtx.fillRect(0,0,canvas.width,canvas.height);
   drawCtx.strokeStyle='#111';drawCtx.lineWidth=2.5;drawCtx.lineCap='round';
-  canvas.onpointerdown=e=>{ drawPainting=true;drawCtx.beginPath();const r=canvas.getBoundingClientRect();drawCtx.moveTo(e.clientX-r.left,e.clientY-r.top); };
-  canvas.onpointermove=e=>{ if(!drawPainting) return;const r=canvas.getBoundingClientRect();drawCtx.lineTo(e.clientX-r.left,e.clientY-r.top);drawCtx.stroke(); };
+  canvas.onpointerdown=e=>{drawPainting=true;drawCtx.beginPath();const r=canvas.getBoundingClientRect();drawCtx.moveTo(e.clientX-r.left,e.clientY-r.top);};
+  canvas.onpointermove=e=>{if(!drawPainting)return;const r=canvas.getBoundingClientRect();drawCtx.lineTo(e.clientX-r.left,e.clientY-r.top);drawCtx.stroke();};
   canvas.onpointerup=()=>drawPainting=false;
 }
-function clearDraw(){ const c=document.getElementById('draw-canvas');drawCtx.fillStyle='white';drawCtx.fillRect(0,0,c.width,c.height); }
-function saveSign(){
-  signImg=new Image();signImg.src=document.getElementById('draw-canvas').toDataURL();
-  closeModal('sign-modal');document.getElementById('btn-place').disabled=false;
-  toast('✅ Signature prête','ok');
-}
-function placeSign(){
-  if(!signImg) return;
-  const c=document.getElementById('sign-doc-canvas');
-  const ctx=c.getContext('2d');
-  ctx.drawImage(signImg,c.width*.62,c.height*.85,c.width*.32,c.height*.08);
-  toast('✍️ Signature placée !','ok');
-}
-function downloadSigned(){
-  if(!sourceImg){ toast('Aucun document','err'); return; }
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF();
-  const c=document.getElementById('sign-doc-canvas');
-  doc.addImage(c.toDataURL('image/jpeg',.95),'JPEG',5,5,200,280);
-  doc.save('scanpro_signe_'+Date.now()+'.pdf');
-  toast('📄 Document signé téléchargé','ok');
+function clearDraw(){const c=document.getElementById('draw-c');drawCtx.fillStyle='white';drawCtx.fillRect(0,0,c.width,c.height);}
+function saveSign(){signImg=new Image();signImg.src=document.getElementById('draw-c').toDataURL();closeModal('sign-modal');toast('✅ Signature prête','ok');}
+
+// ══════════════════════════════════════════════
+// TOOLS
+// ══════════════════════════════════════════════
+function ta(tool){
+  const actions={
+    'img-pdf':()=>xImg('pdf'),
+    'pdf-jpg':()=>{if(pages.length) xAll('jpeg');else xImg('jpeg');},
+    'img-word':()=>xImg('pdf'),
+    'merge':()=>{if(pages.length>=2) xAll('pdf');else toast('Ajoutez ≥2 pages','err');},
+    'split':()=>toast('💡 Utilisez l\'onglet Pages','info'),
+    'compress':()=>xImg('jpeg'),
+    'rotate':()=>{if(sourceImg){adjRo=(adjRo+90)%360;renderEdit();toast('🔄 +90°','ok');}else toast('Importez une image','err');},
+    'sort':()=>toast('💡 Glissez les pages dans l\'onglet Pages','info'),
+    'search':()=>goPanel('security'),
+    'qr':()=>openShare(),
+    'scan-id':()=>{triggerUp();toast('📷 Importez une photo CNI','info');},
+    'id-photo':()=>{triggerUp();toast('📷 Importez une photo ID 4×4','info');},
+    'book':()=>{document.getElementById('batch-in').click();toast('📖 Importez les pages du livre en batch','info');},
+  };
+  if(actions[tool]) actions[tool]();else toast('🔧 '+tool,'info');
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
 // MODALS
-// ═══════════════════════════════════════════
-function openModal(id){ document.getElementById(id).classList.add('open'); }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+// ══════════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 
-// Click outside to close
-document.querySelectorAll('.modal').forEach(m=>{
-  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
-});
-
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
 // PROGRESS
-// ═══════════════════════════════════════════
-function showProg(t,s){ document.getElementById('prog-t').textContent=t;document.getElementById('prog-s').textContent=s;setProg(0);document.getElementById('prog').classList.add('open'); }
-function setProg(p){ document.getElementById('prog-f').style.width=p+'%';document.getElementById('prog-p').textContent=Math.round(p)+'%'; }
-function hideProg(){ setProg(100);setTimeout(()=>document.getElementById('prog').classList.remove('open'),350); }
+// ══════════════════════════════════════════════
+function showProg(t,s){document.getElementById('prog-t').textContent=t;document.getElementById('prog-s').textContent=s;setProg(0);document.getElementById('prog').classList.add('open');}
+function setProg(p){document.getElementById('prog-f').style.width=p+'%';document.getElementById('prog-p').textContent=Math.round(p)+'%';}
+function hideProg(){setProg(100);setTimeout(()=>document.getElementById('prog').classList.remove('open'),350);}
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
 // TOAST
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
 let toastT;
 function toast(msg,type=''){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
+  const t=document.getElementById('toast');t.textContent=msg;
   t.className='toast show'+(type?' '+type:'');
-  clearTimeout(toastT);
-  toastT=setTimeout(()=>t.classList.remove('show'),2800);
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// Init folders UI
+// ══════════════════════════════════════════════
+// SESSION MANAGEMENT — Multi-capture per document
+// ══════════════════════════════════════════════
+let sessions = []; // [{name, captures:[{url, edited:url}]}]
+let currentSession = 0;
+let currentCapture = 0; // which capture in session is active
+let pendingExportFmt = null;
+let pendingExportTarget = null; // 'single' | 'all'
+let expFmt = 'a4';
+
+function initSession() {
+  if(sessions.length === 0) {
+    sessions.push({ name: 'Document_1', captures: [] });
+    currentSession = 0;
+  }
+  renderSessionStrip();
+}
+
+function renderSessionStrip() {
+  const sess = sessions[currentSession];
+  document.getElementById('sess-doc-name').textContent = sess.name;
+  const container = document.getElementById('sess-cards');
+  container.innerHTML = '';
+  sess.captures.forEach((cap, i) => {
+    const card = document.createElement('div');
+    card.className = 'sess-card' + (i === currentCapture ? ' active' : '');
+    card.innerHTML = `
+      <img src="${cap.edited || cap.url}" alt="Capture ${i+1}">
+      <div class="sc-num">${i+1}</div>
+      <button class="sc-del" onclick="removeCapture(${i});event.stopPropagation()">✕</button>
+    `;
+    card.onclick = () => switchCapture(i);
+    container.appendChild(card);
+  });
+}
+
+function addCaptureToSession() {
+  // Switch back to camera to take another photo
+  const sess = sessions[currentSession];
+  if(sess.captures.length === 0) { toast('📷 Prenez d\'abord une première capture','info'); }
+  // Save current edited state
+  if(sourceImg && sess.captures[currentCapture]) {
+    const out = getFinal();
+    if(out) sess.captures[currentCapture].edited = out.toDataURL('image/jpeg',.92);
+  }
+  toast('📷 Activez la caméra pour ajouter une capture','info');
+  // Keep camera active, after next capture it auto-adds to session
+  pendingAddToSession = true;
+  startCam();
+}
+
+let pendingAddToSession = false;
+
+function switchCapture(i) {
+  // Save current edits first
+  const sess = sessions[currentSession];
+  if(sourceImg && sess.captures[currentCapture]) {
+    const out = getFinal();
+    if(out) sess.captures[currentCapture].edited = out.toDataURL('image/jpeg',.92);
+  }
+  currentCapture = i;
+  loadImgURL(sess.captures[i].edited || sess.captures[i].url);
+  renderSessionStrip();
+  goPanel('edit');
+  toast('🖼️ Capture '+(i+1)+' chargée','info');
+}
+
+function removeCapture(i) {
+  const sess = sessions[currentSession];
+  sess.captures.splice(i, 1);
+  if(currentCapture >= sess.captures.length) currentCapture = Math.max(0, sess.captures.length-1);
+  if(sess.captures.length > 0) loadImgURL(sess.captures[currentCapture].edited || sess.captures[currentCapture].url);
+  renderSessionStrip();
+  toast('🗑️ Capture supprimée','');
+}
+
+function newSession() {
+  // Save current session first
+  saveCurrCapture();
+  const n = sessions.length + 1;
+  sessions.push({ name: 'Document_'+n, captures: [] });
+  currentSession = sessions.length - 1;
+  currentCapture = 0;
+  sourceImg = null; workCanvas = null;
+  renderSessionStrip();
+  toast('📄 Nouveau document créé','ok');
+}
+
+function saveCurrCapture() {
+  const sess = sessions[currentSession];
+  if(sourceImg && sess.captures[currentCapture]) {
+    const out = getFinal();
+    if(out) sess.captures[currentCapture].edited = out.toDataURL('image/jpeg',.92);
+  }
+}
+
+// ══════════════════════════════════════════════
+// RENAME
+// ══════════════════════════════════════════════
+function openRename() {
+  const sess = sessions[currentSession];
+  document.getElementById('rename-in').value = sess.name;
+  previewName(sess.name);
+  openModal('rename-modal');
+  setTimeout(() => document.getElementById('rename-in').select(), 100);
+}
+
+function previewName(val) {
+  const clean = val.replace(/[^a-zA-Z0-9_\-. àâäéèêëîïôùûüç]/g,'_').trim() || 'document';
+  document.getElementById('rename-preview').textContent = '→ ' + clean + '.pdf / .png / .jpeg / .docx';
+}
+
+function confirmRename() {
+  const val = document.getElementById('rename-in').value.trim();
+  if(!val) { toast('Entrez un nom','err'); return; }
+  const clean = val.replace(/[^a-zA-Z0-9_\-. àâäéèêëîïôùûüç]/g,'_').trim();
+  sessions[currentSession].name = clean;
+  document.getElementById('sess-doc-name').textContent = clean;
+  closeModal('rename-modal');
+  toast('✅ Renommé en "'+clean+'"','ok');
+}
+
+// ══════════════════════════════════════════════
+// EXPORT WITH NAME DIALOG
+// ══════════════════════════════════════════════
+function askExport(fmt) {
+  pendingExportFmt = fmt;
+  pendingExportTarget = 'single';
+  const sess = sessions[currentSession];
+  const icons = {pdf:'📄',png:'🖼️',jpeg:'📸',word:'📝'};
+  const fmtUp = fmt.toUpperCase();
+  document.getElementById('exp-modal-title').textContent = (icons[fmt]||'📄') + ' Exporter en ' + fmtUp;
+  document.getElementById('exp-name-in').value = sess.name;
+  document.getElementById('exp-name-preview').textContent = '→ ' + sess.name + '.' + (fmt==='word'?'docx':fmt);
+  document.getElementById('exp-pdf-opts').style.display = fmt==='pdf' ? 'block' : 'none';
+  document.getElementById('exp-confirm-btn').textContent = '✅ Exporter en ' + fmtUp;
+  openModal('export-modal');
+  document.getElementById('exp-name-in').oninput = function() {
+    const v = this.value.replace(/[^a-zA-Z0-9_\-. àâäéèêëîïôùûüç]/g,'_').trim() || 'document';
+    document.getElementById('exp-name-preview').textContent = '→ ' + v + '.' + (fmt==='word'?'docx':fmt);
+  };
+  setTimeout(() => document.getElementById('exp-name-in').select(), 100);
+}
+
+function askExportAll(fmt) {
+  if(!pages.length) { toast('Aucune page à exporter','err'); return; }
+  pendingExportFmt = fmt;
+  pendingExportTarget = 'all';
+  const sess = sessions[currentSession];
+  const icons = {pdf:'📄',png:'🖼️',jpeg:'📸',word:'📝'};
+  document.getElementById('exp-modal-title').textContent = (icons[fmt]||'📄') + ' Exporter '+(pages.length)+' pages en '+fmt.toUpperCase();
+  document.getElementById('exp-name-in').value = sess.name + '_complet';
+  document.getElementById('exp-name-preview').textContent = '→ ' + sess.name + '_complet.' + (fmt==='word'?'docx':fmt);
+  document.getElementById('exp-pdf-opts').style.display = fmt==='pdf' ? 'block' : 'none';
+  document.getElementById('exp-confirm-btn').textContent = '✅ Exporter ' + pages.length + ' pages';
+  openModal('export-modal');
+  document.getElementById('exp-name-in').oninput = function() {
+    const v = this.value.replace(/[^a-zA-Z0-9_\-. àâäéèêëîïôùûüç]/g,'_').trim() || 'document';
+    document.getElementById('exp-name-preview').textContent = '→ ' + v + '.' + (fmt==='word'?'docx':fmt);
+  };
+  setTimeout(() => document.getElementById('exp-name-in').select(), 100);
+}
+
+function highlightFmt(el) {
+  document.querySelectorAll('#exp-pdf-opts .btn').forEach(b=>b.classList.remove('p'));
+  el.classList.add('p');
+  pdfFmt = expFmt;
+}
+
+function confirmExport() {
+  const rawName = document.getElementById('exp-name-in').value.trim();
+  const name = rawName.replace(/[^a-zA-Z0-9_\-. àâäéèêëîïôùûüç]/g,'_').trim() || 'scanpro_doc';
+  closeModal('export-modal');
+  if(pendingExportTarget === 'single') {
+    xImgNamed(pendingExportFmt, name);
+  } else {
+    xAllNamed(pendingExportFmt, name);
+  }
+}
+
+function xImgNamed(fmt, name) {
+  const out = getFinal();
+  if(!out) { toast('Aucune image','err'); return; }
+  if(fmt === 'pdf') {
+    const {jsPDF} = window.jspdf;
+    const pw=210,ph=297;
+    const doc = new jsPDF({unit:'mm',format: expFmt||'a4'});
+    const ratio = Math.min(pw/out.width*3.7795, ph/out.height*3.7795);
+    const dw=out.width*ratio/3.7795, dh=out.height*ratio/3.7795;
+    doc.addImage(out.toDataURL('image/jpeg',.95),'JPEG',(pw-dw)/2,(ph-dh)/2,dw,dh);
+    doc.save(name+'.pdf');
+  } else {
+    const a = document.createElement('a');
+    a.href = out.toDataURL(fmt==='png'?'image/png':'image/jpeg',.95);
+    a.download = name+'.'+(fmt==='jpeg'?'jpg':fmt);
+    a.click();
+  }
+  toast('⬇️ "'+name+'" exporté en '+fmt.toUpperCase(),'ok');
+}
+
+async function xAllNamed(fmt, name) {
+  if(!pages.length) { toast('Aucune page','err'); return; }
+  if(fmt === 'pdf') {
+    showProg('📄 Génération PDF...','');
+    const {jsPDF} = window.jspdf;
+    const sz = {a4:[210,297],a3:[297,420],letter:[216,279]};
+    const [pw,ph] = sz[pdfFmt||expFmt]||sz.a4;
+    const doc = new jsPDF({unit:'mm',format:pdfFmt||'a4'});
+    for(let i=0;i<pages.length;i++) {
+      setProg((i/pages.length)*100);
+      if(i>0) doc.addPage();
+      const img = new Image(); img.src = pages[i];
+      await new Promise(r=>img.onload=r);
+      const ratio = Math.min(pw/img.width*3.7795,ph/img.height*3.7795);
+      const dw=img.width*ratio/3.7795,dh=img.height*ratio/3.7795;
+      doc.addImage(pages[i],'JPEG',(pw-dw)/2,(ph-dh)/2,dw,dh);
+    }
+    hideProg();
+    doc.save(name+'.pdf');
+    toast('📄 "'+name+'.pdf" exporté ('+pages.length+' pages)','ok');
+  } else if(fmt === 'word') {
+    showProg('📝 Word...','');
+    try {
+      const ch = [];
+      for(let i=0;i<pages.length;i++) {
+        setProg((i/pages.length)*100);
+        const b64 = pages[i].split(',')[1];
+        ch.push(new docx.Paragraph({children:[new docx.ImageRun({data:b64,transformation:{width:595,height:842},type:'jpg'})]}));
+        if(i<pages.length-1) ch.push(new docx.Paragraph({pageBreakBefore:true,children:[]}));
+      }
+      const d2 = new docx.Document({sections:[{children:ch}]});
+      const blob = await docx.Packer.toBlob(d2);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name+'.docx'; a.click();
+      hideProg();
+      toast('📝 "'+name+'.docx" exporté','ok');
+    } catch(e) { hideProg(); toast('❌ '+e.message,'err'); }
+  } else {
+    pages.forEach((url,i) => {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name+'_p'+(i+1)+'.'+(fmt==='jpeg'?'jpg':fmt);
+      a.click();
+    });
+    toast('⬇️ '+pages.length+' fichiers exportés','ok');
+  }
+}
+
+// Init sessions on load
 renderFolders();
+initSession();
+
 </script>
 </body>
 </html>
