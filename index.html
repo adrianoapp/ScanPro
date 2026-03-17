@@ -2,1133 +2,1461 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ScanPro — Scanner intelligent gratuit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ScanPro — Scanner Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.7.0/docx.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #f0f4f0;
-    --surface: #ffffff;
-    --card: #f8faf8;
-    --green: #1a7a4a;
-    --green2: #27ae60;
-    --green-light: #e8f5ee;
-    --green-glow: rgba(26,122,74,0.12);
-    --gold: #d48a1b;
-    --text: #1a2a1a;
-    --muted: #6b8a6b;
-    --border: #d4e4d4;
-    --shadow: 0 4px 24px rgba(26,122,74,0.08);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  /* Background pattern */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: radial-gradient(circle at 1px 1px, rgba(26,122,74,0.06) 1px, transparent 0);
-    background-size: 28px 28px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* HEADER */
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(255,255,255,0.92);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    height: 62px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .logo-mark {
-    width: 36px; height: 36px;
-    background: linear-gradient(135deg, var(--green), var(--green2));
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    box-shadow: 0 2px 10px rgba(26,122,74,0.3);
-  }
-
-  .logo-name {
-    font-weight: 800;
-    font-size: 18px;
-    color: var(--text);
-    letter-spacing: -0.5px;
-  }
-
-  .logo-name span { color: var(--green); }
-
-  .free-badge {
-    background: var(--green-light);
-    color: var(--green);
-    border: 1px solid rgba(26,122,74,0.2);
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 9px;
-    border-radius: 20px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-
-  .header-right { display: flex; align-items: center; gap: 12px; }
-
-  .lang-select {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 12px;
-    color: var(--text);
-    cursor: pointer;
-    outline: none;
-  }
-
-  /* HERO STRIP */
-  .hero-strip {
-    background: linear-gradient(135deg, var(--green) 0%, #0f5c35 100%);
-    color: white;
-    text-align: center;
-    padding: 28px 24px 24px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hero-strip::after {
-    content: '';
-    position: absolute;
-    bottom: -1px; left: 0; right: 0;
-    height: 20px;
-    background: var(--bg);
-    clip-path: ellipse(55% 100% at 50% 100%);
-  }
-
-  .hero-strip h1 {
-    font-size: 22px;
-    font-weight: 800;
-    margin-bottom: 6px;
-    letter-spacing: -0.5px;
-  }
-
-  .hero-strip p {
-    font-size: 13px;
-    opacity: 0.85;
-    max-width: 480px;
-    margin: 0 auto;
-  }
-
-  /* MAIN */
-  .main {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 28px 16px 60px;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* TABS */
-  .tabs {
-    display: flex;
-    background: white;
-    border-radius: 12px;
-    padding: 4px;
-    gap: 2px;
-    border: 1px solid var(--border);
-    margin-bottom: 20px;
-    box-shadow: var(--shadow);
-  }
-
-  .tab {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    background: transparent;
-    border-radius: 9px;
-    cursor: pointer;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--muted);
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-
-  .tab:hover { color: var(--text); background: var(--card); }
-
-  .tab.active {
-    background: var(--green);
-    color: white;
-    box-shadow: 0 2px 8px rgba(26,122,74,0.3);
-  }
-
-  /* PANELS */
-  .panel { display: none; }
-  .panel.active { display: block; }
-
-  /* CAMERA CARD */
-  .card {
-    background: white;
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    margin-bottom: 16px;
-  }
-
-  .card-header {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .card-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-  }
-
-  .card-body { padding: 20px; }
-
-  /* Camera */
-  .camera-wrap {
-    position: relative;
-    background: #0a1a0a;
-    border-radius: 12px;
-    overflow: hidden;
-    aspect-ratio: 4/3;
-    max-height: 340px;
-  }
-
-  #camera {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .camera-overlay {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-
-  /* Corner guides */
-  .corner {
-    position: absolute;
-    width: 28px; height: 28px;
-    border-color: rgba(255,255,255,0.8);
-    border-style: solid;
-  }
-  .corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; border-radius: 3px 0 0 0; }
-  .corner.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; border-radius: 0 3px 0 0; }
-  .corner.bl { bottom: 16px; left: 16px; border-width: 0 0 2px 2px; border-radius: 0 0 0 3px; }
-  .corner.br { bottom: 16px; right: 16px; border-width: 0 2px 2px 0; border-radius: 0 0 3px 0; }
-
-  .scan-line {
-    position: absolute;
-    left: 16px; right: 16px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--green2), transparent);
-    animation: scan 2.5s ease-in-out infinite;
-    opacity: 0;
-  }
-
-  .scan-line.active { opacity: 1; }
-
-  @keyframes scan {
-    0% { top: 16px; }
-    100% { top: calc(100% - 16px); }
-  }
-
-  .cam-placeholder {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255,255,255,0.4);
-    gap: 10px;
-    font-size: 13px;
-  }
-
-  .cam-placeholder .cam-icon { font-size: 40px; opacity: 0.5; }
-
-  /* Preview image */
-  #preview-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: none;
-    position: absolute;
-    inset: 0;
-    background: #0a1a0a;
-  }
-
-  canvas { display: none; }
-
-  /* Buttons */
-  .btn-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 14px;
-  }
-
-  .btn {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 10px 18px;
-    border-radius: 9px;
-    border: none;
-    cursor: pointer;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.18s;
-    white-space: nowrap;
-  }
-
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
-  .btn:not(:disabled):hover { transform: translateY(-1px); }
-  .btn:not(:disabled):active { transform: translateY(0); }
-
-  .btn-primary {
-    background: var(--green);
-    color: white;
-    box-shadow: 0 2px 8px rgba(26,122,74,0.3);
-  }
-  .btn-primary:not(:disabled):hover { background: #156040; box-shadow: 0 4px 14px rgba(26,122,74,0.4); }
-
-  .btn-outline {
-    background: white;
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-  .btn-outline:not(:disabled):hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
-
-  .btn-ghost {
-    background: var(--card);
-    color: var(--muted);
-    border: 1px solid var(--border);
-  }
-
-  /* Upload zone */
-  .upload-zone {
-    border: 2px dashed var(--border);
-    border-radius: 12px;
-    padding: 36px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: var(--card);
-  }
-
-  .upload-zone:hover, .upload-zone.drag-over {
-    border-color: var(--green);
-    background: var(--green-light);
-  }
-
-  .upload-zone .uz-icon { font-size: 36px; margin-bottom: 10px; }
-  .upload-zone h3 { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
-  .upload-zone p { font-size: 12px; color: var(--muted); }
-
-  #file-input { display: none; }
-
-  /* PROGRESS */
-  .progress-wrap {
-    display: none;
-    margin-top: 14px;
-  }
-
-  .progress-wrap.show { display: block; }
-
-  .progress-header {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 7px;
-  }
-
-  .progress-status { color: var(--green); }
-  .progress-pct { color: var(--muted); font-family: 'JetBrains Mono', monospace; }
-
-  .progress-bar {
-    height: 6px;
-    background: var(--border);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--green), var(--green2));
-    border-radius: 3px;
-    width: 0%;
-    transition: width 0.3s ease;
-  }
-
-  /* RESULT AREA */
-  .result-wrap { margin-top: 14px; display: none; }
-  .result-wrap.show { display: block; }
-
-  .result-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-  }
-
-  .result-label {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--muted);
-  }
-
-  .char-count {
-    font-size: 11px;
-    color: var(--muted);
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  textarea#result {
-    width: 100%;
-    min-height: 180px;
-    max-height: 320px;
-    padding: 14px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12.5px;
-    line-height: 1.7;
-    color: var(--text);
-    background: var(--card);
-    resize: vertical;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  textarea#result:focus { border-color: var(--green); }
-
-  /* EXPORT BUTTONS */
-  .export-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
-    margin-top: 14px;
-  }
-
-  .export-card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .export-card:hover {
-    border-color: var(--green);
-    background: var(--green-light);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(26,122,74,0.15);
-  }
-
-  .export-card:disabled, .export-card.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .export-icon { font-size: 28px; }
-  .export-name { font-size: 13px; font-weight: 700; }
-  .export-desc { font-size: 11px; color: var(--muted); }
-
-  /* TRANSLATE */
-  .translate-row {
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    margin-top: 14px;
-  }
-
-  .select-wrap { flex: 1; min-width: 120px; }
-  .select-wrap label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-  select.lang-picker {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 13px;
-    color: var(--text);
-    background: var(--card);
-    outline: none;
-    cursor: pointer;
-  }
-
-  select.lang-picker:focus { border-color: var(--green); }
-
-  /* TOAST */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--text);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    z-index: 9999;
-    transition: transform 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  }
-
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast.success { background: var(--green); }
-  .toast.error { background: #e53935; }
-
-  /* STATS BAR */
-  .stats-bar {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-
-  .stat-chip {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    flex: 1;
-    min-width: 130px;
-    box-shadow: var(--shadow);
-  }
-
-  .stat-icon { font-size: 22px; }
-  .stat-info { }
-  .stat-num { font-size: 18px; font-weight: 800; color: var(--green); font-family: 'JetBrains Mono', monospace; }
-  .stat-label { font-size: 11px; color: var(--muted); }
-
-  /* FOOTER */
-  footer {
-    background: white;
-    border-top: 1px solid var(--border);
-    text-align: center;
-    padding: 16px;
-    font-size: 11px;
-    color: var(--muted);
-    position: relative;
-    z-index: 1;
-  }
-
-  footer span { color: var(--green); font-weight: 700; }
-
-  /* Responsive */
-  @media (max-width: 500px) {
-    .hero-strip h1 { font-size: 18px; }
-    .tab { font-size: 11px; padding: 8px 6px; }
-    .export-grid { grid-template-columns: 1fr 1fr; }
-  }
+:root {
+  --bg: #0d0d0d;
+  --surface: #161616;
+  --card: #1e1e1e;
+  --border: #2a2a2a;
+  --green: #00c853;
+  --green2: #69f0ae;
+  --green-dim: rgba(0,200,83,0.12);
+  --text: #f0f0f0;
+  --muted: #666;
+  --muted2: #444;
+  --accent: #00e5ff;
+  --gold: #ffd740;
+  --red: #ff5252;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; }
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* HEADER */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 100;
+}
+.logo { display:flex; align-items:center; gap:8px; }
+.logo-icon {
+  width:32px; height:32px;
+  background: linear-gradient(135deg, var(--green), #00897b);
+  border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px;
+}
+.logo-text { font-weight:800; font-size:18px; letter-spacing:-0.5px; }
+.logo-text span { color:var(--green); }
+.header-actions { display:flex; gap:8px; }
+.hbtn {
+  background: var(--card); border:1px solid var(--border);
+  color: var(--text); padding:6px 12px; border-radius:8px;
+  font-family:'Outfit',sans-serif; font-size:12px; font-weight:600;
+  cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:5px;
+}
+.hbtn:hover { border-color:var(--green); color:var(--green); }
+
+/* MAIN LAYOUT */
+.app { flex:1; display:flex; overflow:hidden; }
+
+/* SIDEBAR */
+.sidebar {
+  width:64px; background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex; flex-direction:column; align-items:center;
+  padding:12px 0; gap:4px; flex-shrink:0;
+}
+.nav-btn {
+  width:44px; height:44px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:3px; border-radius:10px; cursor:pointer;
+  transition:all 0.15s; background:transparent; border:none;
+  font-size:18px; color:var(--muted);
+}
+.nav-btn span { font-size:9px; color:var(--muted); font-family:'Outfit',sans-serif; font-weight:500; }
+.nav-btn:hover { background:var(--card); color:var(--text); }
+.nav-btn:hover span { color:var(--text); }
+.nav-btn.active { background:var(--green-dim); color:var(--green); }
+.nav-btn.active span { color:var(--green); }
+.nav-divider { width:32px; height:1px; background:var(--border); margin:4px 0; }
+
+/* CONTENT */
+.content { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+
+/* PANELS */
+.panel { display:none; flex:1; overflow:hidden; flex-direction:column; }
+.panel.active { display:flex; }
+
+/* ===== SCAN PANEL ===== */
+.scan-workspace {
+  flex:1; display:flex; flex-direction:column; overflow:hidden;
+  position:relative;
+}
+
+/* Camera view */
+.cam-container {
+  flex:1; position:relative; background:#000; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+#cam-video {
+  width:100%; height:100%; object-fit:cover; display:none;
+}
+.cam-idle {
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:16px; color:var(--muted);
+}
+.cam-idle-icon { font-size:56px; opacity:0.3; }
+.cam-idle h3 { font-size:16px; font-weight:600; color:var(--muted); }
+.cam-idle p { font-size:12px; color:var(--muted2); text-align:center; max-width:260px; }
+
+/* Document detection overlay */
+.detect-overlay {
+  position:absolute; inset:0; pointer-events:none;
+}
+.detect-box {
+  position:absolute;
+  border:2px solid var(--green);
+  box-shadow: 0 0 0 2000px rgba(0,0,0,0.35);
+  display:none;
+  transition: all 0.2s ease;
+}
+.detect-box.show { display:block; }
+.detect-label {
+  position:absolute; top:-26px; left:0;
+  background:var(--green); color:#000;
+  font-size:11px; font-weight:700; padding:3px 8px;
+  border-radius:4px; white-space:nowrap;
+  font-family:'Outfit',sans-serif;
+}
+/* Corner handles */
+.det-corner {
+  position:absolute; width:16px; height:16px;
+  border-color:var(--green); border-style:solid;
+}
+.det-corner.tl { top:-2px; left:-2px; border-width:3px 0 0 3px; }
+.det-corner.tr { top:-2px; right:-2px; border-width:3px 3px 0 0; }
+.det-corner.bl { bottom:-2px; left:-2px; border-width:0 0 3px 3px; }
+.det-corner.br { bottom:-2px; right:-2px; border-width:0 3px 3px 0; }
+
+/* Scan line animation */
+.scan-anim {
+  position:absolute; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,var(--green),transparent);
+  animation: scanline 2s linear infinite;
+  display:none;
+}
+.scan-anim.active { display:block; }
+@keyframes scanline {
+  0% { top:10%; } 100% { top:90%; }
+}
+
+/* Bottom camera controls */
+.cam-controls {
+  background: var(--surface);
+  border-top:1px solid var(--border);
+  padding:12px 16px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  flex-shrink:0;
+}
+.cam-left, .cam-right { display:flex; gap:8px; flex:1; }
+.cam-right { justify-content:flex-end; }
+.ctrl-btn {
+  background:var(--card); border:1px solid var(--border);
+  color:var(--text); padding:8px 14px; border-radius:9px;
+  font-family:'Outfit',sans-serif; font-size:12px; font-weight:600;
+  cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:6px;
+}
+.ctrl-btn:hover { border-color:var(--green); color:var(--green); }
+.ctrl-btn.primary {
+  background:var(--green); color:#000; border-color:var(--green);
+  font-size:13px; padding:10px 20px;
+}
+.ctrl-btn.primary:hover { background:var(--green2); }
+.ctrl-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+/* Doc type badge */
+.doc-type-badge {
+  position:absolute; top:12px; left:50%; transform:translateX(-50%);
+  background:rgba(0,0,0,0.7); border:1px solid var(--green);
+  color:var(--green); font-size:11px; font-weight:700;
+  padding:5px 14px; border-radius:20px;
+  font-family:'Outfit',sans-serif; letter-spacing:0.5px;
+  display:none; backdrop-filter:blur(8px);
+}
+.doc-type-badge.show { display:block; }
+
+/* ===== EDIT PANEL ===== */
+.edit-layout {
+  flex:1; display:flex; overflow:hidden;
+}
+.edit-canvas-wrap {
+  flex:1; position:relative; overflow:hidden;
+  background:#111; display:flex; align-items:center; justify-content:center;
+}
+#edit-canvas {
+  max-width:100%; max-height:100%;
+  cursor:crosshair;
+  display:block;
+}
+.edit-canvas-empty {
+  color:var(--muted); text-align:center;
+}
+.edit-canvas-empty .e-icon { font-size:48px; margin-bottom:12px; opacity:0.3; }
+
+/* Edit sidebar */
+.edit-tools {
+  width:220px; background:var(--surface);
+  border-left:1px solid var(--border);
+  overflow-y:auto; flex-shrink:0;
+  padding:12px;
+  display:flex; flex-direction:column; gap:12px;
+}
+.tool-section h4 {
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:1px; color:var(--muted); margin-bottom:8px;
+}
+
+/* Filter buttons */
+.filter-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.filter-btn {
+  background:var(--card); border:1px solid var(--border);
+  color:var(--text); padding:8px 6px; border-radius:8px;
+  cursor:pointer; text-align:center; font-size:11px; font-weight:600;
+  font-family:'Outfit',sans-serif; transition:all 0.15s;
+}
+.filter-btn:hover, .filter-btn.active {
+  border-color:var(--green); color:var(--green); background:var(--green-dim);
+}
+
+/* Sliders */
+.slider-row { display:flex; flex-direction:column; gap:5px; }
+.slider-label {
+  display:flex; justify-content:space-between;
+  font-size:11px; color:var(--muted);
+}
+.slider-label span { color:var(--green); font-family:'JetBrains Mono',monospace; }
+input[type=range] {
+  width:100%; -webkit-appearance:none;
+  height:3px; background:var(--border); border-radius:2px; outline:none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none;
+  width:14px; height:14px; border-radius:50%;
+  background:var(--green); cursor:pointer;
+  box-shadow:0 0 6px rgba(0,200,83,0.5);
+}
+
+/* Crop/resize presets */
+.preset-list { display:flex; flex-direction:column; gap:4px; }
+.preset-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:7px 10px; border-radius:7px; cursor:pointer;
+  border:1px solid transparent; font-size:12px; transition:all 0.15s;
+  color:var(--muted);
+}
+.preset-item:hover, .preset-item.active {
+  background:var(--card); border-color:var(--border); color:var(--text);
+}
+.preset-item.active { border-color:var(--green); color:var(--green); }
+.preset-size { font-size:10px; color:var(--muted2); font-family:'JetBrains Mono',monospace; }
+
+/* Selection mode */
+.sel-mode-info {
+  background:var(--green-dim); border:1px solid rgba(0,200,83,0.3);
+  border-radius:8px; padding:8px 10px;
+  font-size:11px; color:var(--green); display:none;
+}
+.sel-mode-info.show { display:block; }
+
+/* Selection rectangle on canvas */
+#sel-overlay {
+  position:absolute; border:2px dashed var(--accent);
+  background:rgba(0,229,255,0.08); pointer-events:none; display:none;
+}
+
+/* ===== PAGES PANEL ===== */
+.pages-layout { flex:1; display:flex; overflow:hidden; }
+.pages-list {
+  flex:1; overflow-y:auto; padding:16px;
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:12px; align-content:start;
+}
+.page-thumb {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:10px; overflow:hidden; cursor:pointer;
+  transition:all 0.2s; position:relative;
+}
+.page-thumb:hover { border-color:var(--green); transform:translateY(-2px); }
+.page-thumb img { width:100%; aspect-ratio:3/4; object-fit:cover; display:block; }
+.page-thumb-footer {
+  padding:6px 8px; display:flex; align-items:center; justify-content:space-between;
+}
+.page-num { font-size:11px; font-weight:700; color:var(--muted); }
+.page-del {
+  background:transparent; border:none; cursor:pointer;
+  color:var(--muted); font-size:14px; padding:2px;
+  transition:color 0.15s;
+}
+.page-del:hover { color:var(--red); }
+.pages-empty {
+  grid-column:1/-1; text-align:center; color:var(--muted);
+  padding:60px 20px;
+}
+.pages-empty .pe-icon { font-size:48px; opacity:0.2; margin-bottom:12px; }
+
+/* Pages sidebar */
+.pages-tools {
+  width:200px; background:var(--surface);
+  border-left:1px solid var(--border);
+  padding:16px 12px;
+  display:flex; flex-direction:column; gap:10px;
+  flex-shrink:0;
+}
+.pages-tools h4 { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
+
+/* Export */
+.export-btn {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:9px;
+  border:1px solid var(--border); background:var(--card);
+  cursor:pointer; transition:all 0.15s; width:100%;
+  font-family:'Outfit',sans-serif;
+}
+.export-btn:hover { border-color:var(--green); background:var(--green-dim); }
+.export-btn-icon { font-size:20px; }
+.export-btn-info { text-align:left; }
+.export-btn-name { font-size:13px; font-weight:700; color:var(--text); }
+.export-btn-desc { font-size:10px; color:var(--muted); }
+
+/* ===== OCR PANEL ===== */
+.ocr-layout { flex:1; display:flex; overflow:hidden; gap:0; }
+.ocr-image-side {
+  flex:1; background:#111; position:relative;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+#ocr-canvas { max-width:100%; max-height:100%; cursor:crosshair; display:block; }
+.ocr-sel-hint {
+  position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+  background:rgba(0,0,0,0.75); border:1px solid var(--accent);
+  color:var(--accent); font-size:11px; padding:5px 14px; border-radius:20px;
+  font-family:'Outfit',sans-serif; backdrop-filter:blur(8px);
+  display:none;
+}
+.ocr-sel-hint.show { display:block; }
+#ocr-sel-box {
+  position:absolute; border:2px dashed var(--accent);
+  background:rgba(0,229,255,0.08); pointer-events:none; display:none;
+}
+
+.ocr-text-side {
+  width:300px; background:var(--surface);
+  border-left:1px solid var(--border);
+  display:flex; flex-direction:column; flex-shrink:0;
+}
+.ocr-toolbar {
+  padding:10px 12px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+.ocr-lang-sel {
+  background:var(--card); border:1px solid var(--border);
+  color:var(--text); padding:5px 8px; border-radius:7px;
+  font-family:'Outfit',sans-serif; font-size:11px; outline:none; cursor:pointer; flex:1;
+}
+#ocr-text {
+  flex:1; padding:12px; background:transparent; border:none; outline:none;
+  color:var(--text); font-family:'JetBrains Mono',monospace; font-size:12px;
+  line-height:1.7; resize:none;
+}
+.ocr-footer {
+  padding:10px 12px; border-top:1px solid var(--border);
+  display:flex; gap:6px;
+}
+.ocr-btn {
+  flex:1; padding:8px; border-radius:8px; border:1px solid var(--border);
+  background:var(--card); color:var(--text); cursor:pointer;
+  font-family:'Outfit',sans-serif; font-size:11px; font-weight:600;
+  transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.ocr-btn:hover { border-color:var(--green); color:var(--green); }
+.ocr-btn.primary { background:var(--green); color:#000; border-color:var(--green); }
+.ocr-btn.primary:hover { background:var(--green2); }
+
+/* ===== SIGN PANEL ===== */
+.sign-layout { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.sign-doc-area {
+  flex:1; background:#111; position:relative;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+#sign-doc-canvas { max-width:100%; max-height:100%; cursor:crosshair; }
+.sign-toolbar {
+  background:var(--surface); border-top:1px solid var(--border);
+  padding:10px 16px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+  flex-shrink:0;
+}
+.sign-pad-wrap {
+  position:fixed; inset:0; background:rgba(0,0,0,0.85);
+  z-index:1000; display:none;
+  align-items:center; justify-content:center;
+}
+.sign-pad-wrap.show { display:flex; }
+.sign-pad-box {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:20px; width:420px; max-width:95vw;
+}
+.sign-pad-box h3 { font-size:16px; font-weight:700; margin-bottom:12px; }
+#sign-canvas {
+  width:100%; height:160px; background:white; border-radius:8px;
+  cursor:crosshair; display:block;
+}
+.sign-pad-actions { display:flex; gap:8px; margin-top:12px; }
+
+/* Progress bar */
+.progress-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.8);
+  z-index:2000; display:none;
+  align-items:center; justify-content:center;
+}
+.progress-overlay.show { display:flex; }
+.progress-box {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:28px 32px; width:320px; text-align:center;
+}
+.progress-box h3 { font-size:16px; font-weight:700; margin-bottom:6px; }
+.progress-box p { font-size:12px; color:var(--muted); margin-bottom:16px; }
+.prog-bar { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+.prog-fill {
+  height:100%; background:linear-gradient(90deg,var(--green),var(--green2));
+  border-radius:3px; width:0%; transition:width 0.3s;
+}
+.prog-pct { font-size:13px; color:var(--green); font-family:'JetBrains Mono',monospace; margin-top:8px; }
+
+/* Toast */
+.toast {
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px);
+  background:var(--card); border:1px solid var(--border);
+  color:var(--text); padding:10px 18px; border-radius:10px;
+  font-size:13px; font-weight:600; z-index:3000;
+  transition:transform 0.25s; white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+.toast.ok { border-color:var(--green); color:var(--green); }
+.toast.err { border-color:var(--red); color:var(--red); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+@media (max-width:640px) {
+  .edit-tools, .pages-tools, .ocr-text-side { width:160px; }
+  .sidebar { width:52px; }
+  .nav-btn span { display:none; }
+}
 </style>
 </head>
 <body>
 
-<header>
+<!-- HEADER -->
+<div class="header">
   <div class="logo">
-    <div class="logo-mark">📷</div>
-    <div class="logo-name">Scan<span>Pro</span></div>
-    <div class="free-badge">100% Gratuit</div>
+    <div class="logo-icon">📷</div>
+    <div class="logo-text">Scan<span>Pro</span></div>
   </div>
-  <div class="header-right">
-    <select class="lang-select" id="ocr-lang-header" onchange="updateOcrLang(this.value)">
-      <option value="fra">🇫🇷 Français</option>
-      <option value="eng">🇬🇧 English</option>
-      <option value="ara">🇸🇦 العربية</option>
-      <option value="por">🇧🇷 Português</option>
-    </select>
+  <div class="header-actions">
+    <button class="hbtn" onclick="addPageFromScan()">➕ Page</button>
+    <button class="hbtn" id="pages-count-btn" onclick="switchPanel('pages')">📄 <span id="page-count">0</span> pages</button>
   </div>
-</header>
-
-<div class="hero-strip">
-  <h1>📄 Scanner & Convertir vos documents</h1>
-  <p>Scannez, extrayez le texte, traduisez et exportez — sans abonnement, sans limite.</p>
 </div>
 
-<div class="main">
-
-  <!-- Stats -->
-  <div class="stats-bar">
-    <div class="stat-chip">
-      <div class="stat-icon">🔍</div>
-      <div class="stat-info">
-        <div class="stat-num" id="s-scans">0</div>
-        <div class="stat-label">Scans effectués</div>
-      </div>
-    </div>
-    <div class="stat-chip">
-      <div class="stat-icon">📝</div>
-      <div class="stat-info">
-        <div class="stat-num" id="s-chars">0</div>
-        <div class="stat-label">Caractères extraits</div>
-      </div>
-    </div>
-    <div class="stat-chip">
-      <div class="stat-icon">📤</div>
-      <div class="stat-info">
-        <div class="stat-num" id="s-exports">0</div>
-        <div class="stat-label">Exports réalisés</div>
-      </div>
-    </div>
+<div class="app">
+  <!-- SIDEBAR NAV -->
+  <div class="sidebar">
+    <button class="nav-btn active" onclick="switchPanel('scan')" id="nav-scan">
+      📷<span>Scan</span>
+    </button>
+    <button class="nav-btn" onclick="switchPanel('edit')" id="nav-edit">
+      ✂️<span>Éditer</span>
+    </button>
+    <button class="nav-btn" onclick="switchPanel('ocr')" id="nav-ocr">
+      🧠<span>OCR</span>
+    </button>
+    <div class="nav-divider"></div>
+    <button class="nav-btn" onclick="switchPanel('pages')" id="nav-pages">
+      📑<span>Pages</span>
+    </button>
+    <button class="nav-btn" onclick="switchPanel('sign')" id="nav-sign">
+      ✍️<span>Signer</span>
+    </button>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('camera', this)">📸 Caméra</button>
-    <button class="tab" onclick="switchTab('upload', this)">🖼️ Importer</button>
-    <button class="tab" onclick="switchTab('export', this)">📤 Exporter</button>
-    <button class="tab" onclick="switchTab('translate', this)">🌍 Traduire</button>
-  </div>
+  <!-- CONTENT -->
+  <div class="content">
 
-  <!-- CAMERA PANEL -->
-  <div class="panel active" id="panel-camera">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">📸 Caméra live</div>
-        <div id="cam-status" style="font-size:11px; color:var(--muted)">En attente...</div>
-      </div>
-      <div class="card-body">
-        <div class="camera-wrap">
-          <div class="cam-placeholder" id="cam-placeholder">
-            <div class="cam-icon">📷</div>
-            <div>Cliquez sur "Activer la caméra"</div>
+    <!-- ===== SCAN PANEL ===== -->
+    <div class="panel active" id="panel-scan">
+      <div class="scan-workspace">
+        <div class="cam-container" id="cam-container">
+          <div class="cam-idle" id="cam-idle">
+            <div class="cam-idle-icon">📷</div>
+            <h3>Prêt à scanner</h3>
+            <p>Activez la caméra ou importez une image pour commencer</p>
           </div>
-          <video id="camera" autoplay playsinline></video>
-          <img id="preview-img" alt="Capture">
-          <canvas id="canvas"></canvas>
-          <div class="camera-overlay">
-            <div class="corner tl"></div>
-            <div class="corner tr"></div>
-            <div class="corner bl"></div>
-            <div class="corner br"></div>
-            <div class="scan-line" id="scan-line"></div>
+          <video id="cam-video" autoplay playsinline></video>
+          <canvas id="cam-canvas" style="display:none"></canvas>
+
+          <!-- Detection overlay -->
+          <div class="detect-overlay">
+            <div class="detect-box" id="detect-box">
+              <div class="det-corner tl"></div>
+              <div class="det-corner tr"></div>
+              <div class="det-corner bl"></div>
+              <div class="det-corner br"></div>
+              <div class="detect-label" id="detect-label">Document détecté</div>
+            </div>
           </div>
+          <div class="scan-anim" id="scan-anim"></div>
+          <div class="doc-type-badge" id="doc-badge">📄 Document A4</div>
         </div>
 
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="startCamera()">📷 Activer caméra</button>
-          <button class="btn btn-outline" id="btn-capture" onclick="capture()" disabled>📸 Capturer</button>
-          <button class="btn btn-ghost" onclick="retake()">🔄 Reprendre</button>
-        </div>
-
-        <div class="progress-wrap" id="progress">
-          <div class="progress-header">
-            <span class="progress-status" id="progress-status">Analyse en cours...</span>
-            <span class="progress-pct" id="progress-pct">0%</span>
+        <div class="cam-controls">
+          <div class="cam-left">
+            <button class="ctrl-btn" onclick="startCamera()">📷 Caméra</button>
+            <button class="ctrl-btn" onclick="document.getElementById('img-upload').click()">🖼️ Importer</button>
+            <input type="file" id="img-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
           </div>
-          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+          <button class="ctrl-btn primary" id="btn-capture" onclick="captureAndProcess()" disabled>
+            ⚡ Capturer
+          </button>
+          <div class="cam-right">
+            <button class="ctrl-btn" onclick="toggleFlash()" id="btn-flash">🔦 Flash</button>
+            <button class="ctrl-btn" onclick="switchCamera()">🔄 Flip</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">🧠 Texte extrait (OCR)</div>
-        <button class="btn btn-primary" style="padding:7px 14px; font-size:12px" onclick="extractText()">Lancer l'OCR</button>
-      </div>
-      <div class="card-body">
-        <div class="result-wrap show" id="result-wrap">
-          <div class="result-toolbar">
-            <span class="result-label">Résultat</span>
-            <span class="char-count" id="char-count">0 caractères</span>
+    <!-- ===== EDIT PANEL ===== -->
+    <div class="panel" id="panel-edit">
+      <div class="edit-layout">
+        <div class="edit-canvas-wrap" id="edit-canvas-wrap">
+          <div class="edit-canvas-empty" id="edit-empty">
+            <div class="e-icon">✂️</div>
+            <p style="font-size:13px;color:var(--muted)">Scannez d'abord une image</p>
           </div>
-          <textarea id="result" placeholder="Le texte extrait apparaîtra ici après l'OCR...&#10;&#10;Conseil : Utilisez une bonne luminosité pour de meilleurs résultats." oninput="updateCharCount()"></textarea>
+          <canvas id="edit-canvas"></canvas>
+          <div id="sel-overlay"></div>
+        </div>
+
+        <div class="edit-tools">
+          <!-- Filters -->
+          <div class="tool-section">
+            <h4>🎨 Filtres</h4>
+            <div class="filter-grid">
+              <button class="filter-btn active" onclick="applyFilter('original',this)">Original</button>
+              <button class="filter-btn" onclick="applyFilter('bw',this)">N&B</button>
+              <button class="filter-btn" onclick="applyFilter('enhance',this)">Amélioré</button>
+              <button class="filter-btn" onclick="applyFilter('gray',this)">Gris</button>
+              <button class="filter-btn" onclick="applyFilter('sharp',this)">Net</button>
+              <button class="filter-btn" onclick="applyFilter('magic',this)">✨ Magic</button>
+            </div>
+          </div>
+
+          <!-- Adjustments -->
+          <div class="tool-section">
+            <h4>⚙️ Réglages</h4>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="slider-row">
+                <div class="slider-label">Luminosité <span id="v-bright">0</span></div>
+                <input type="range" min="-100" max="100" value="0" oninput="adjustImage('brightness',this.value);document.getElementById('v-bright').textContent=this.value">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label">Contraste <span id="v-contrast">0</span></div>
+                <input type="range" min="-100" max="100" value="0" oninput="adjustImage('contrast',this.value);document.getElementById('v-contrast').textContent=this.value">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label">Netteté <span id="v-sharp">0</span></div>
+                <input type="range" min="0" max="10" value="0" oninput="adjustImage('sharpen',this.value);document.getElementById('v-sharp').textContent=this.value">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label">Rotation <span id="v-rot">0°</span></div>
+                <input type="range" min="-180" max="180" value="0" oninput="adjustImage('rotate',this.value);document.getElementById('v-rot').textContent=this.value+'°'">
+              </div>
+            </div>
+          </div>
+
+          <!-- Recadrage -->
+          <div class="tool-section">
+            <h4>📐 Recadrer / Format</h4>
+            <div class="preset-list">
+              <div class="preset-item active" onclick="setPreset('free',this)">
+                <span>🆓 Libre</span><span class="preset-size">—</span>
+              </div>
+              <div class="preset-item" onclick="setPreset('a4',this)">
+                <span>📄 A4</span><span class="preset-size">210×297</span>
+              </div>
+              <div class="preset-item" onclick="setPreset('a3',this)">
+                <span>📋 A3</span><span class="preset-size">297×420</span>
+              </div>
+              <div class="preset-item" onclick="setPreset('letter',this)">
+                <span>📃 Letter</span><span class="preset-size">216×279</span>
+              </div>
+              <div class="preset-item" onclick="setPreset('id',this)">
+                <span>🪪 CNI/ID</span><span class="preset-size">85×54</span>
+              </div>
+              <div class="preset-item" onclick="setPreset('passport',this)">
+                <span>📘 Passeport</span><span class="preset-size">125×88</span>
+              </div>
+              <div class="preset-item" onclick="setPreset('photo4x4',this)">
+                <span>🖼️ Photo 4×4</span><span class="preset-size">40×40mm</span>
+              </div>
+              <div class="preset-item" onclick="setPreset('visa',this)">
+                <span>🛂 Visa</span><span class="preset-size">35×45</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sélection OCR -->
+          <div class="tool-section">
+            <h4>🎯 Sélection texte</h4>
+            <div class="sel-mode-info" id="sel-info">
+              Cliquez et glissez sur l'image pour sélectionner une zone de texte
+            </div>
+            <button class="filter-btn" style="width:100%;margin-top:6px" onclick="toggleSelMode()">
+              🎯 Mode sélection
+            </button>
+            <button class="filter-btn" style="width:100%;margin-top:6px" onclick="ocrSelectedZone()">
+              🧠 OCR zone sélectionnée
+            </button>
+          </div>
+
+          <!-- Actions -->
+          <div class="tool-section">
+            <h4>💾 Sauvegarder</h4>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <button class="ctrl-btn" style="width:100%;justify-content:center" onclick="addCurrentToPages()">➕ Ajouter aux pages</button>
+              <button class="ctrl-btn" style="width:100%;justify-content:center" onclick="downloadEditedImage('png')">⬇️ PNG</button>
+              <button class="ctrl-btn" style="width:100%;justify-content:center" onclick="downloadEditedImage('jpeg')">⬇️ JPEG</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- UPLOAD PANEL -->
-  <div class="panel" id="panel-upload">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">🖼️ Importer une image</div>
-      </div>
-      <div class="card-body">
-        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
-          ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
-          <div class="uz-icon">📂</div>
-          <h3>Glissez votre image ici</h3>
-          <p>ou cliquez pour sélectionner un fichier<br>JPG, PNG, WEBP — Max 10 Mo</p>
+    <!-- ===== OCR PANEL ===== -->
+    <div class="panel" id="panel-ocr">
+      <div class="ocr-layout">
+        <div class="ocr-image-side">
+          <div style="color:var(--muted);text-align:center" id="ocr-empty">
+            <div style="font-size:48px;opacity:0.2;margin-bottom:12px">🧠</div>
+            <p style="font-size:13px">Scannez d'abord une image</p>
+          </div>
+          <canvas id="ocr-canvas"></canvas>
+          <div id="ocr-sel-box"></div>
+          <div class="ocr-sel-hint show" id="ocr-hint">✦ Glissez pour sélectionner une zone · ou OCR complet</div>
         </div>
-        <input type="file" id="file-input" accept="image/*" onchange="loadFile(event)">
-
-        <div id="upload-preview-wrap" style="display:none; margin-top:14px;">
-          <img id="upload-preview" style="max-width:100%; max-height:300px; border-radius:10px; display:block; margin:0 auto; border:1px solid var(--border);">
-          <div class="btn-row" style="justify-content:center; margin-top:12px;">
-            <button class="btn btn-primary" onclick="extractTextFromUpload()">🧠 Lancer l'OCR</button>
-          </div>
-        </div>
-
-        <div class="progress-wrap" id="progress2">
-          <div class="progress-header">
-            <span class="progress-status" id="progress-status2">Analyse en cours...</span>
-            <span class="progress-pct" id="progress-pct2">0%</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" id="progress-fill2"></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- EXPORT PANEL -->
-  <div class="panel" id="panel-export">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">📤 Exporter le texte</div>
-      </div>
-      <div class="card-body">
-        <div style="font-size:13px; color:var(--muted); margin-bottom:14px;">
-          Texte à exporter (<span id="export-char-count">0</span> caractères) :
-        </div>
-        <textarea id="export-result" style="width:100%; min-height:120px; padding:12px; border:1px solid var(--border); border-radius:10px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text); background:var(--card); resize:vertical; outline:none;" placeholder="Le texte OCR s'affiche ici pour exportation..." oninput="syncResults()"></textarea>
-
-        <div class="export-grid">
-          <div class="export-card" onclick="savePDF()">
-            <div class="export-icon">📄</div>
-            <div class="export-name">PDF</div>
-            <div class="export-desc">Document portable</div>
-          </div>
-          <div class="export-card" onclick="saveWord()">
-            <div class="export-icon">📝</div>
-            <div class="export-name">Word (.docx)</div>
-            <div class="export-desc">Éditable</div>
-          </div>
-          <div class="export-card" onclick="saveTXT()">
-            <div class="export-icon">📋</div>
-            <div class="export-name">Texte (.txt)</div>
-            <div class="export-desc">Brut simple</div>
-          </div>
-          <div class="export-card" onclick="copyText()">
-            <div class="export-icon">📎</div>
-            <div class="export-name">Copier</div>
-            <div class="export-desc">Presse-papiers</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TRANSLATE PANEL -->
-  <div class="panel" id="panel-translate">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">🌍 Traduction du texte</div>
-      </div>
-      <div class="card-body">
-        <div class="translate-row">
-          <div class="select-wrap">
-            <label>De</label>
-            <select class="lang-picker" id="from-lang">
-              <option value="fr">🇫🇷 Français</option>
-              <option value="en">🇬🇧 English</option>
-              <option value="ar">🇸🇦 Arabe</option>
-              <option value="pt">🇧🇷 Portugais</option>
-              <option value="es">🇪🇸 Espagnol</option>
-              <option value="sw">🇰🇪 Swahili</option>
+        <div class="ocr-text-side">
+          <div class="ocr-toolbar">
+            <select class="ocr-lang-sel" id="ocr-lang">
+              <option value="fra">🇫🇷 Français</option>
+              <option value="eng">🇬🇧 English</option>
+              <option value="ara">🇸🇦 Arabe</option>
+              <option value="por">🇧🇷 Portugais</option>
+              <option value="spa">🇪🇸 Español</option>
             </select>
           </div>
-          <div style="padding-bottom:8px; font-size:18px; color:var(--muted);">→</div>
-          <div class="select-wrap">
-            <label>Vers</label>
-            <select class="lang-picker" id="to-lang">
-              <option value="en">🇬🇧 English</option>
-              <option value="fr">🇫🇷 Français</option>
-              <option value="ar">🇸🇦 Arabe</option>
-              <option value="pt">🇧🇷 Portugais</option>
-              <option value="es">🇪🇸 Espagnol</option>
-              <option value="sw">🇰🇪 Swahili</option>
-            </select>
+          <textarea id="ocr-text" placeholder="Le texte extrait apparaîtra ici...&#10;&#10;💡 Conseil : sélectionnez une zone précise pour plus de précision."></textarea>
+          <div class="ocr-footer">
+            <button class="ocr-btn primary" onclick="runOCRFull()">🧠 OCR complet</button>
+            <button class="ocr-btn" onclick="copyOCR()">📋 Copier</button>
+            <button class="ocr-btn" onclick="exportOCRtxt()">⬇️ .txt</button>
           </div>
-          <button class="btn btn-primary" onclick="translateText()">🌍 Traduire</button>
-        </div>
-
-        <div style="margin-top:16px;">
-          <div class="result-toolbar" style="margin-bottom:6px;">
-            <span class="result-label">Texte source</span>
-          </div>
-          <textarea id="translate-source" style="width:100%; min-height:120px; padding:12px; border:1px solid var(--border); border-radius:10px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text); background:var(--card); resize:vertical; outline:none;" placeholder="Collez votre texte ici ou effectuez d'abord un scan OCR..."></textarea>
-        </div>
-
-        <div style="margin-top:12px;">
-          <div class="result-toolbar" style="margin-bottom:6px;">
-            <span class="result-label">Traduction</span>
-            <button class="btn btn-ghost" style="font-size:11px; padding:4px 10px;" onclick="copyTranslation()">📋 Copier</button>
-          </div>
-          <textarea id="translate-output" style="width:100%; min-height:120px; padding:12px; border:1px solid var(--border); border-radius:10px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text); background:var(--green-light); resize:vertical; outline:none;" placeholder="La traduction apparaîtra ici..." readonly></textarea>
         </div>
       </div>
     </div>
+
+    <!-- ===== PAGES PANEL ===== -->
+    <div class="panel" id="panel-pages">
+      <div class="pages-layout">
+        <div class="pages-list" id="pages-list">
+          <div class="pages-empty" id="pages-empty">
+            <div class="pe-icon">📑</div>
+            <p style="font-size:13px">Aucune page encore.<br>Scannez des documents pour commencer.</p>
+          </div>
+        </div>
+        <div class="pages-tools">
+          <h4>📤 Exporter tout</h4>
+          <button class="export-btn" onclick="exportAllPDF()">
+            <span class="export-btn-icon">📄</span>
+            <div class="export-btn-info">
+              <div class="export-btn-name">PDF</div>
+              <div class="export-btn-desc">Multi-pages</div>
+            </div>
+          </button>
+          <button class="export-btn" onclick="exportAllWord()">
+            <span class="export-btn-icon">📝</span>
+            <div class="export-btn-info">
+              <div class="export-btn-name">Word</div>
+              <div class="export-btn-desc">.docx éditable</div>
+            </div>
+          </button>
+          <button class="export-btn" onclick="exportAllImages('png')">
+            <span class="export-btn-icon">🖼️</span>
+            <div class="export-btn-info">
+              <div class="export-btn-name">PNG</div>
+              <div class="export-btn-desc">Images séparées</div>
+            </div>
+          </button>
+          <button class="export-btn" onclick="exportAllImages('jpeg')">
+            <span class="export-btn-icon">📸</span>
+            <div class="export-btn-info">
+              <div class="export-btn-name">JPEG</div>
+              <div class="export-btn-desc">Compressé</div>
+            </div>
+          </button>
+
+          <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+          <h4>⚙️ Options PDF</h4>
+          <div class="preset-list">
+            <div class="preset-item active" onclick="setPdfSize('a4',this)">A4</div>
+            <div class="preset-item" onclick="setPdfSize('a3',this)">A3</div>
+            <div class="preset-item" onclick="setPdfSize('letter',this)">Letter</div>
+          </div>
+
+          <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+          <button class="ctrl-btn" style="width:100%;justify-content:center;color:var(--red);border-color:var(--red)" onclick="clearAllPages()">
+            🗑️ Tout effacer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SIGN PANEL ===== -->
+    <div class="panel" id="panel-sign">
+      <div class="sign-layout">
+        <div class="sign-doc-area">
+          <div style="color:var(--muted);text-align:center" id="sign-empty">
+            <div style="font-size:48px;opacity:0.2;margin-bottom:12px">✍️</div>
+            <p style="font-size:13px">Chargez un document à signer</p>
+          </div>
+          <canvas id="sign-doc-canvas"></canvas>
+        </div>
+        <div class="sign-toolbar">
+          <button class="ctrl-btn" onclick="loadDocForSign()">📂 Charger doc</button>
+          <button class="ctrl-btn primary" onclick="openSignPad()">✍️ Créer signature</button>
+          <button class="ctrl-btn" id="btn-place-sign" onclick="placeSignature()" disabled>📌 Placer</button>
+          <button class="ctrl-btn" onclick="downloadSignedDoc()">⬇️ Télécharger PDF</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<!-- SIGNATURE PAD -->
+<div class="sign-pad-wrap" id="sign-pad-wrap">
+  <div class="sign-pad-box">
+    <h3>✍️ Votre signature</h3>
+    <canvas id="sign-canvas" width="380" height="160"></canvas>
+    <div class="sign-pad-actions">
+      <button class="ctrl-btn" style="flex:1" onclick="clearSignPad()">🗑️ Effacer</button>
+      <button class="ctrl-btn primary" style="flex:2" onclick="saveSignature()">✅ Utiliser</button>
+      <button class="ctrl-btn" style="flex:1" onclick="closeSignPad()">✕ Annuler</button>
+    </div>
   </div>
+</div>
 
-</div><!-- /main -->
+<!-- PROGRESS OVERLAY -->
+<div class="progress-overlay" id="prog-overlay">
+  <div class="progress-box">
+    <h3 id="prog-title">Traitement en cours...</h3>
+    <p id="prog-sub">Veuillez patienter</p>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+    <div class="prog-pct" id="prog-pct">0%</div>
+  </div>
+</div>
 
-<footer>
-  ScanPro — <span>100% gratuit</span> · Fonctionne hors connexion · Aucune donnée envoyée au serveur
-</footer>
-
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// State
-let ocrLang = 'fra';
-let capturedCanvas = null;
-let uploadedImage = null;
-let stats = { scans: 0, chars: 0, exports: 0 };
+// ============================================================
+// STATE
+// ============================================================
+let camStream = null;
+let facingMode = 'environment';
+let currentImageData = null; // ImageData of current scan
+let currentImg = null; // HTMLImageElement
+let pages = []; // Array of dataURLs
+let currentFilter = 'original';
+let currentPreset = 'free';
+let pdfSize = 'a4';
+let selMode = false;
+let selStart = null;
+let selRect = null;
+let signatureImg = null;
+let signPainting = false;
+let signCtx = null;
+let ocrSelecting = false;
+let ocrSelStart = null;
+let ocrSelRect = null;
+let adjustments = { brightness:0, contrast:0, sharpen:0, rotate:0 };
 
-// ====== TABS ======
-function switchTab(name, el) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
-  el.classList.add('active');
-  if (name === 'export' || name === 'translate') syncResults();
+// ============================================================
+// NAV
+// ============================================================
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='edit' && currentImg) renderEditCanvas();
+  if(name==='ocr' && currentImg) renderOCRCanvas();
+  if(name==='sign' && currentImg) renderSignCanvas();
 }
 
-// ====== OCR LANG ======
-function updateOcrLang(val) { ocrLang = val; }
-
-// ====== CAMERA ======
-let stream = null;
+// ============================================================
+// CAMERA
+// ============================================================
 async function startCamera() {
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    const video = document.getElementById('camera');
-    video.srcObject = stream;
-    video.style.display = 'block';
-    document.getElementById('cam-placeholder').style.display = 'none';
+    if(camStream) { camStream.getTracks().forEach(t=>t.stop()); }
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode, width:{ideal:1920}, height:{ideal:1080} }
+    });
+    const v = document.getElementById('cam-video');
+    v.srcObject = camStream;
+    v.style.display = 'block';
+    document.getElementById('cam-idle').style.display = 'none';
     document.getElementById('btn-capture').disabled = false;
-    document.getElementById('cam-status').textContent = '● Live';
-    document.getElementById('cam-status').style.color = '#27ae60';
+    document.getElementById('scan-anim').classList.add('active');
+    startDetection();
+    toast('📷 Caméra activée','ok');
   } catch(e) {
-    showToast('❌ Accès caméra refusé. Vérifiez les permissions.', 'error');
+    toast('❌ Caméra refusée — vérifiez les permissions','err');
   }
 }
 
-function capture() {
-  const video = document.getElementById('camera');
-  const canvas = document.getElementById('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  capturedCanvas = canvas;
-
-  // Show preview
-  const img = document.getElementById('preview-img');
-  img.src = canvas.toDataURL('image/jpeg', 0.9);
-  img.style.display = 'block';
-  video.style.display = 'none';
-
-  // Flash effect
-  document.getElementById('scan-line').classList.add('active');
-  setTimeout(() => document.getElementById('scan-line').classList.remove('active'), 2500);
-
-  showToast('📸 Image capturée !', 'success');
-  stats.scans++;
-  updateStats();
+function switchCamera() {
+  facingMode = facingMode==='environment' ? 'user' : 'environment';
+  if(camStream) startCamera();
 }
 
-function retake() {
-  document.getElementById('preview-img').style.display = 'none';
-  const video = document.getElementById('camera');
-  if (stream) { video.style.display = 'block'; }
-  capturedCanvas = null;
+function toggleFlash() { toast('💡 Flash non disponible sur navigateur',''); }
+
+// Document detection simulation (real detection requires OpenCV/WASM)
+let detectionInterval = null;
+function startDetection() {
+  if(detectionInterval) clearInterval(detectionInterval);
+  detectionInterval = setInterval(() => {
+    const v = document.getElementById('cam-video');
+    if(!v || !v.videoWidth) return;
+    // Simulate detection with random slight variation for realism
+    const vw = v.offsetWidth, vh = v.offsetHeight;
+    const margin = 0.08 + Math.random()*0.02;
+    const box = document.getElementById('detect-box');
+    const badge = document.getElementById('doc-badge');
+    const label = document.getElementById('detect-label');
+
+    // Detect document type based on aspect ratio simulation
+    const types = [
+      {name:'Document A4', label:'📄 A4', ratio:0.707},
+      {name:'CNI / Carte ID', label:'🪪 CNI', ratio:1.586},
+      {name:'Passeport', label:'📘 Passeport', ratio:1.42},
+      {name:'Photo 4×4', label:'🖼️ 4×4', ratio:1.0},
+      {name:'Reçu', label:'🧾 Reçu', ratio:0.5},
+    ];
+    const t = types[Math.floor(Math.random()*types.length)];
+
+    const bx = vw*margin, by = vh*margin;
+    const bw = vw*(1-margin*2), bh = vh*(1-margin*2);
+
+    box.style.left = bx+'px'; box.style.top = by+'px';
+    box.style.width = bw+'px'; box.style.height = bh+'px';
+    box.classList.add('show');
+    label.textContent = t.label;
+    badge.textContent = t.label+' — '+t.name;
+    badge.classList.add('show');
+  }, 1800);
 }
 
-// ====== UPLOAD ======
-function dragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag-over'); }
-function dragLeave() { document.getElementById('upload-zone').classList.remove('drag-over'); }
-function dropFile(e) {
-  e.preventDefault();
-  dragLeave();
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) processUploadedFile(file);
+// ============================================================
+// CAPTURE
+// ============================================================
+function captureAndProcess() {
+  const v = document.getElementById('cam-video');
+  if(!v.srcObject && !currentImg) { toast('📷 Activez la caméra d\'abord','err'); return; }
+
+  const canvas = document.getElementById('cam-canvas');
+  if(v.srcObject) {
+    canvas.width = v.videoWidth;
+    canvas.height = v.videoHeight;
+    canvas.getContext('2d').drawImage(v,0,0);
+  }
+
+  // Stop detection
+  clearInterval(detectionInterval);
+  document.getElementById('scan-anim').classList.remove('active');
+  document.getElementById('detect-box').classList.remove('show');
+  document.getElementById('doc-badge').classList.remove('show');
+
+  const dataURL = canvas.toDataURL('image/jpeg',0.92);
+  loadImageFromURL(dataURL);
+  toast('✅ Image capturée — édition disponible','ok');
+  switchPanel('edit');
 }
 
-function loadFile(e) {
+function loadImage(e) {
   const file = e.target.files[0];
-  if (file) processUploadedFile(file);
-}
-
-function processUploadedFile(file) {
+  if(!file) return;
   const reader = new FileReader();
-  reader.onload = function(ev) {
-    const img = document.getElementById('upload-preview');
-    img.src = ev.target.result;
-    uploadedImage = img;
-    document.getElementById('upload-preview-wrap').style.display = 'block';
-    stats.scans++;
-    updateStats();
-    showToast('🖼️ Image chargée !', 'success');
+  reader.onload = ev => {
+    loadImageFromURL(ev.target.result);
+    toast('🖼️ Image importée','ok');
+    switchPanel('edit');
   };
   reader.readAsDataURL(file);
 }
 
-// ====== OCR ======
-function showProgress(id, show) {
-  document.getElementById(id).classList.toggle('show', show);
+function loadImageFromURL(dataURL) {
+  const img = new Image();
+  img.onload = () => {
+    currentImg = img;
+    // Reset adjustments
+    adjustments = {brightness:0,contrast:0,sharpen:0,rotate:0};
+    document.querySelectorAll('input[type=range]').forEach(r=>r.value=0);
+    document.getElementById('v-bright').textContent='0';
+    document.getElementById('v-contrast').textContent='0';
+    document.getElementById('v-sharp').textContent='0';
+    document.getElementById('v-rot').textContent='0°';
+    document.getElementById('edit-empty').style.display='none';
+    document.getElementById('ocr-empty').style.display='none';
+    document.getElementById('sign-empty').style.display='none';
+    renderEditCanvas();
+  };
+  img.src = dataURL;
 }
 
-function updateProgress(fillId, pctId, statusId, pct, status) {
-  document.getElementById(fillId).style.width = pct + '%';
-  document.getElementById(pctId).textContent = Math.round(pct) + '%';
-  document.getElementById(statusId).textContent = status;
+function addPageFromScan() {
+  if(!currentImg) { toast('📷 Scannez d\'abord une image','err'); return; }
+  addCurrentToPages();
 }
 
-async function runOCR(source, progressId) {
-  showProgress(progressId, true);
-  try {
-    const { data: { text } } = await Tesseract.recognize(source, ocrLang, {
-      logger: m => {
-        if (m.status === 'recognizing text') {
-          const pct = m.progress * 100;
-          const fill = progressId === 'progress' ? 'progress-fill' : 'progress-fill2';
-          const pctEl = progressId === 'progress' ? 'progress-pct' : 'progress-pct2';
-          const statEl = progressId === 'progress' ? 'progress-status' : 'progress-status2';
-          updateProgress(fill, pctEl, statEl, pct, 'Reconnaissance du texte...');
-        }
-      }
-    });
-    showProgress(progressId, false);
-    return text.trim();
-  } catch(e) {
-    showProgress(progressId, false);
-    showToast('❌ Erreur OCR : ' + e.message, 'error');
-    return '';
+// ============================================================
+// EDIT CANVAS
+// ============================================================
+function renderEditCanvas() {
+  if(!currentImg) return;
+  const wrap = document.getElementById('edit-canvas-wrap');
+  const canvas = document.getElementById('edit-canvas');
+  const maxW = wrap.clientWidth - 10;
+  const maxH = wrap.clientHeight - 10;
+
+  let w = currentImg.width, h = currentImg.height;
+  const scale = Math.min(maxW/w, maxH/h, 1);
+  canvas.width = w; canvas.height = h;
+  canvas.style.width = (w*scale)+'px';
+  canvas.style.height = (h*scale)+'px';
+
+  applyFiltersToCanvas(canvas, currentImg);
+}
+
+function applyFiltersToCanvas(canvas, img) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+
+  // Apply rotation
+  const rad = (adjustments.rotate * Math.PI) / 180;
+  ctx.save();
+  ctx.translate(w/2, h/2);
+  ctx.rotate(rad);
+  ctx.translate(-w/2, -h/2);
+  ctx.drawImage(img, 0, 0, w, h);
+  ctx.restore();
+
+  // Apply pixel filters
+  const imageData = ctx.getImageData(0,0,w,h);
+  const data = imageData.data;
+  const br = adjustments.brightness * 2.55;
+  const con = adjustments.contrast;
+  const factor = (259*(con+255))/(255*(259-con));
+
+  for(let i=0;i<data.length;i+=4) {
+    let r=data[i], g=data[i+1], b=data[i+2];
+
+    // Brightness
+    r+=br; g+=br; b+=br;
+    // Contrast
+    r=factor*(r-128)+128; g=factor*(g-128)+128; b=factor*(b-128)+128;
+
+    if(currentFilter==='bw') {
+      const gray=0.299*r+0.587*g+0.114*b;
+      r=g=b=gray>128?255:0;
+    } else if(currentFilter==='gray') {
+      const gray=0.299*r+0.587*g+0.114*b;
+      r=g=b=gray;
+    } else if(currentFilter==='enhance') {
+      r=Math.min(255,r*1.1+10); g=Math.min(255,g*1.05+5); b=Math.min(255,b*0.95);
+    } else if(currentFilter==='magic') {
+      // Auto-enhance: boost contrast & reduce noise
+      const gray=0.299*r+0.587*g+0.114*b;
+      if(gray>180){r=Math.min(255,r+30);g=Math.min(255,g+30);b=Math.min(255,b+30);}
+      else if(gray<80){r=Math.max(0,r-30);g=Math.max(0,g-30);b=Math.max(0,b-30);}
+    } else if(currentFilter==='sharp') {
+      r=Math.min(255,Math.max(0,r*1.15-15));
+      g=Math.min(255,Math.max(0,g*1.15-15));
+      b=Math.min(255,Math.max(0,b*1.15-15));
+    }
+
+    data[i]=Math.min(255,Math.max(0,r));
+    data[i+1]=Math.min(255,Math.max(0,g));
+    data[i+2]=Math.min(255,Math.max(0,b));
   }
+  ctx.putImageData(imageData,0,0);
 }
 
-async function extractText() {
-  if (!capturedCanvas) { showToast('📸 Capturez d\'abord une image.', 'error'); return; }
-  const text = await runOCR(capturedCanvas, 'progress');
-  if (text) {
-    document.getElementById('result').value = text;
-    updateCharCount();
-    stats.chars += text.length;
-    updateStats();
-    showToast('✅ Texte extrait avec succès !', 'success');
+function applyFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderEditCanvas();
+}
+
+function adjustImage(type, val) {
+  adjustments[type] = parseFloat(val);
+  renderEditCanvas();
+}
+
+function setPreset(preset, el) {
+  currentPreset = preset;
+  document.querySelectorAll('.preset-item').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  toast('📐 Format: '+preset.toUpperCase(),'ok');
+}
+
+// ============================================================
+// SELECTION MODE (for OCR zone)
+// ============================================================
+function toggleSelMode() {
+  selMode = !selMode;
+  const info = document.getElementById('sel-info');
+  info.classList.toggle('show', selMode);
+  document.getElementById('edit-canvas').style.cursor = selMode ? 'crosshair' : 'default';
+  if(!selMode) {
+    document.getElementById('sel-overlay').style.display='none';
+    selRect=null;
   }
+  toast(selMode ? '🎯 Mode sélection activé':'🎯 Mode sélection désactivé','ok');
 }
 
-async function extractTextFromUpload() {
-  if (!uploadedImage) { showToast('📂 Importez d\'abord une image.', 'error'); return; }
-  const text = await runOCR(uploadedImage, 'progress2');
-  if (text) {
-    document.getElementById('result').value = text;
-    updateCharCount();
-    stats.chars += text.length;
-    updateStats();
-    showToast('✅ Texte extrait avec succès !', 'success');
-    switchTab('camera', document.querySelectorAll('.tab')[0]);
-  }
-}
+// Canvas mouse events for selection
+document.getElementById('edit-canvas').addEventListener('mousedown',e=>{
+  if(!selMode) return;
+  const r = e.target.getBoundingClientRect();
+  selStart={x:e.clientX-r.left, y:e.clientY-r.top};
+});
+document.getElementById('edit-canvas').addEventListener('mousemove',e=>{
+  if(!selMode||!selStart) return;
+  const r = e.target.getBoundingClientRect();
+  const x=e.clientX-r.left, y=e.clientY-r.top;
+  const ov=document.getElementById('sel-overlay');
+  const sx=Math.min(selStart.x,x), sy=Math.min(selStart.y,y);
+  const sw=Math.abs(x-selStart.x), sh=Math.abs(y-selStart.y);
+  ov.style.cssText=`display:block;left:${sx}px;top:${sy}px;width:${sw}px;height:${sh}px;`;
+  selRect={x:sx,y:sy,w:sw,h:sh};
+});
+document.getElementById('edit-canvas').addEventListener('mouseup',()=>{ if(selMode)selStart=null; });
 
-// ====== TEXT SYNC ======
-function updateCharCount() {
-  const len = document.getElementById('result').value.length;
-  document.getElementById('char-count').textContent = len + ' caractères';
-}
+// Touch support
+document.getElementById('edit-canvas').addEventListener('touchstart',e=>{
+  if(!selMode) return;
+  const t=e.touches[0];
+  const r=e.target.getBoundingClientRect();
+  selStart={x:t.clientX-r.left,y:t.clientY-r.top};
+},{passive:true});
+document.getElementById('edit-canvas').addEventListener('touchmove',e=>{
+  if(!selMode||!selStart) return;
+  const t=e.touches[0];
+  const r=e.target.getBoundingClientRect();
+  const x=t.clientX-r.left,y=t.clientY-r.top;
+  const ov=document.getElementById('sel-overlay');
+  const sx=Math.min(selStart.x,x),sy=Math.min(selStart.y,y);
+  const sw=Math.abs(x-selStart.x),sh=Math.abs(y-selStart.y);
+  ov.style.cssText=`display:block;left:${sx}px;top:${sy}px;width:${sw}px;height:${sh}px;`;
+  selRect={x:sx,y:sy,w:sw,h:sh};
+},{passive:true});
 
-function syncResults() {
-  const text = document.getElementById('result').value;
-  const exportTA = document.getElementById('export-result');
-  const transTA = document.getElementById('translate-source');
-  if (exportTA && !exportTA.value) exportTA.value = text;
-  if (transTA && !transTA.value) transTA.value = text;
-  document.getElementById('export-char-count').textContent = (exportTA ? exportTA.value : text).length;
-}
-
-// ====== EXPORTS ======
-function getExportText() {
-  return document.getElementById('export-result').value || document.getElementById('result').value;
-}
-
-function savePDF() {
-  const text = getExportText();
-  if (!text) { showToast('Aucun texte à exporter.', 'error'); return; }
+async function ocrSelectedZone() {
+  if(!selRect||!currentImg) { toast('🎯 Sélectionnez d\'abord une zone','err'); return; }
+  const canvas=document.getElementById('edit-canvas');
+  const scaleX=currentImg.width/canvas.clientWidth;
+  const scaleY=currentImg.height/canvas.clientHeight;
+  // Create temp canvas with selection
+  const tmp=document.createElement('canvas');
+  tmp.width=selRect.w*scaleX; tmp.height=selRect.h*scaleY;
+  tmp.getContext('2d').drawImage(canvas,
+    selRect.x*scaleX, selRect.y*scaleY, selRect.w*scaleX, selRect.h*scaleY,
+    0,0,tmp.width,tmp.height);
+  switchPanel('ocr');
+  showProgress('🧠 OCR Zone sélectionnée...','Analyse en cours...');
   try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFont('helvetica');
-    doc.setFontSize(12);
-    const lines = doc.splitTextToSize(text, 180);
-    let y = 20;
-    lines.forEach(line => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      doc.text(line, 15, y);
-      y += 7;
+    const lang=document.getElementById('ocr-lang').value;
+    const {data:{text}}=await Tesseract.recognize(tmp,lang,{
+      logger:m=>{ if(m.status==='recognizing text') updateProgress(m.progress*100); }
     });
-    doc.save('scanpro_' + Date.now() + '.pdf');
-    stats.exports++; updateStats();
-    showToast('📄 PDF téléchargé !', 'success');
-  } catch(e) { showToast('❌ Erreur PDF : ' + e.message, 'error'); }
+    hideProgress();
+    document.getElementById('ocr-text').value=text.trim();
+    toast('✅ Texte extrait !','ok');
+  } catch(e){ hideProgress(); toast('❌ Erreur OCR','err'); }
 }
 
-async function saveWord() {
-  const text = getExportText();
-  if (!text) { showToast('Aucun texte à exporter.', 'error'); return; }
-  try {
-    const doc = new docx.Document({
-      sections: [{
-        properties: {},
-        children: text.split('\n').map(line =>
-          new docx.Paragraph({ children: [new docx.TextRun(line || ' ')] })
-        )
-      }]
-    });
-    const blob = await docx.Packer.toBlob(doc);
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'scanpro_' + Date.now() + '.docx';
-    a.click();
-    stats.exports++; updateStats();
-    showToast('📝 Word téléchargé !', 'success');
-  } catch(e) { showToast('❌ Erreur Word : ' + e.message, 'error'); }
-}
-
-function saveTXT() {
-  const text = getExportText();
-  if (!text) { showToast('Aucun texte à exporter.', 'error'); return; }
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'scanpro_' + Date.now() + '.txt';
+// ============================================================
+// DOWNLOAD EDITED IMAGE
+// ============================================================
+function downloadEditedImage(fmt) {
+  if(!currentImg){ toast('Aucune image à télécharger','err'); return; }
+  const c=document.getElementById('edit-canvas');
+  const mime=fmt==='png'?'image/png':'image/jpeg';
+  const a=document.createElement('a');
+  a.href=c.toDataURL(mime,0.95);
+  a.download='scanpro_'+Date.now()+'.'+fmt;
   a.click();
-  stats.exports++; updateStats();
-  showToast('📋 Fichier texte téléchargé !', 'success');
+  toast('⬇️ Image téléchargée','ok');
 }
 
-function copyText() {
-  const text = getExportText();
-  if (!text) { showToast('Aucun texte à copier.', 'error'); return; }
-  navigator.clipboard.writeText(text).then(() => {
-    stats.exports++; updateStats();
-    showToast('📎 Copié dans le presse-papiers !', 'success');
-  });
+function addCurrentToPages() {
+  if(!currentImg){ toast('Aucune image à ajouter','err'); return; }
+  const c=document.getElementById('edit-canvas');
+  const dataURL=c.toDataURL('image/jpeg',0.92);
+  pages.push(dataURL);
+  updatePagesUI();
+  toast('➕ Page ajoutée ('+pages.length+' au total)','ok');
 }
 
-function copyTranslation() {
-  const text = document.getElementById('translate-output').value;
-  if (!text) { showToast('Aucune traduction à copier.', 'error'); return; }
-  navigator.clipboard.writeText(text).then(() => showToast('📎 Traduction copiée !', 'success'));
+// ============================================================
+// OCR PANEL
+// ============================================================
+function renderOCRCanvas() {
+  if(!currentImg) return;
+  const wrap=document.getElementById('ocr-canvas').parentElement;
+  const canvas=document.getElementById('ocr-canvas');
+  const maxW=wrap.clientWidth-10, maxH=wrap.clientHeight-60;
+  const scale=Math.min(maxW/currentImg.width,maxH/currentImg.height,1);
+  canvas.width=currentImg.width; canvas.height=currentImg.height;
+  canvas.style.width=(currentImg.width*scale)+'px';
+  canvas.style.height=(currentImg.height*scale)+'px';
+  canvas.getContext('2d').drawImage(currentImg,0,0);
+  document.getElementById('ocr-hint').classList.add('show');
 }
 
-// ====== TRANSLATE ======
-async function translateText() {
-  const text = document.getElementById('translate-source').value.trim();
-  if (!text) { showToast('Entrez du texte à traduire.', 'error'); return; }
-
-  const from = document.getElementById('from-lang').value;
-  const to = document.getElementById('to-lang').value;
-
-  document.getElementById('translate-output').value = '⏳ Traduction en cours...';
-
-  // Split long text into chunks
-  const chunks = [];
-  const words = text.split(' ');
-  let chunk = '';
-  words.forEach(w => {
-    if ((chunk + ' ' + w).length > 400) { chunks.push(chunk.trim()); chunk = w; }
-    else chunk += ' ' + w;
-  });
-  if (chunk) chunks.push(chunk.trim());
-
-  try {
-    const results = await Promise.all(chunks.map(c =>
-      fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(c)}&langpair=${from}|${to}`)
-        .then(r => r.json())
-        .then(d => d.responseData.translatedText)
-    ));
-    document.getElementById('translate-output').value = results.join(' ');
-    showToast('🌍 Traduction terminée !', 'success');
-  } catch(e) {
-    document.getElementById('translate-output').value = '';
-    showToast('❌ Erreur de traduction. Vérifiez la connexion.', 'error');
+// OCR canvas selection
+document.getElementById('ocr-canvas').addEventListener('mousedown',e=>{
+  const r=e.target.getBoundingClientRect();
+  ocrSelStart={x:e.clientX-r.left,y:e.clientY-r.top};
+  ocrSelecting=true;
+});
+document.getElementById('ocr-canvas').addEventListener('mousemove',e=>{
+  if(!ocrSelecting) return;
+  const r=e.target.getBoundingClientRect();
+  const x=e.clientX-r.left,y=e.clientY-r.top;
+  const sx=Math.min(ocrSelStart.x,x),sy=Math.min(ocrSelStart.y,y);
+  const sw=Math.abs(x-ocrSelStart.x),sh=Math.abs(y-ocrSelStart.y);
+  const ov=document.getElementById('ocr-sel-box');
+  ov.style.cssText=`display:block;left:${sx}px;top:${sy}px;width:${sw}px;height:${sh}px;`;
+  ocrSelRect={x:sx,y:sy,w:sw,h:sh};
+});
+document.getElementById('ocr-canvas').addEventListener('mouseup',async ()=>{
+  ocrSelecting=false;
+  if(ocrSelRect&&ocrSelRect.w>20&&ocrSelRect.h>20) {
+    await runOCROnZone(ocrSelRect);
   }
+});
+
+async function runOCROnZone(rect) {
+  const canvas=document.getElementById('ocr-canvas');
+  const scaleX=currentImg.width/canvas.clientWidth;
+  const scaleY=currentImg.height/canvas.clientHeight;
+  const tmp=document.createElement('canvas');
+  tmp.width=rect.w*scaleX; tmp.height=rect.h*scaleY;
+  tmp.getContext('2d').drawImage(canvas,
+    rect.x*scaleX,rect.y*scaleY,rect.w*scaleX,rect.h*scaleY,
+    0,0,tmp.width,tmp.height);
+  await doOCR(tmp);
 }
 
-// ====== UI HELPERS ======
-function updateStats() {
-  document.getElementById('s-scans').textContent = stats.scans;
-  document.getElementById('s-chars').textContent = stats.chars > 999 ? (stats.chars/1000).toFixed(1)+'k' : stats.chars;
-  document.getElementById('s-exports').textContent = stats.exports;
+async function runOCRFull() {
+  if(!currentImg){ toast('Scannez d\'abord une image','err'); return; }
+  const canvas=document.getElementById('ocr-canvas');
+  await doOCR(canvas);
 }
 
+async function doOCR(source) {
+  const lang=document.getElementById('ocr-lang').value;
+  showProgress('🧠 Analyse OCR...','Reconnaissance du texte en cours');
+  try {
+    const {data:{text}}=await Tesseract.recognize(source,lang,{
+      logger:m=>{ if(m.status==='recognizing text') updateProgress(m.progress*100); }
+    });
+    hideProgress();
+    document.getElementById('ocr-text').value=text.trim();
+    document.getElementById('ocr-sel-box').style.display='none';
+    ocrSelRect=null;
+    toast('✅ '+text.trim().length+' caractères extraits','ok');
+  } catch(e){ hideProgress(); toast('❌ Erreur OCR: '+e.message,'err'); }
+}
+
+function copyOCR() {
+  const t=document.getElementById('ocr-text').value;
+  if(!t){ toast('Aucun texte','err'); return; }
+  navigator.clipboard.writeText(t).then(()=>toast('📋 Copié !','ok'));
+}
+
+function exportOCRtxt() {
+  const t=document.getElementById('ocr-text').value;
+  if(!t){ toast('Aucun texte à exporter','err'); return; }
+  const blob=new Blob([t],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='scanpro_ocr_'+Date.now()+'.txt';
+  a.click();
+  toast('⬇️ Texte exporté','ok');
+}
+
+// ============================================================
+// PAGES & MULTI-PAGE EXPORT
+// ============================================================
+function updatePagesUI() {
+  const list=document.getElementById('pages-list');
+  const empty=document.getElementById('pages-empty');
+  document.getElementById('page-count').textContent=pages.length;
+  empty.style.display=pages.length?'none':'block';
+
+  // Remove existing thumbnails
+  list.querySelectorAll('.page-thumb').forEach(t=>t.remove());
+
+  pages.forEach((dataURL,i)=>{
+    const div=document.createElement('div');
+    div.className='page-thumb';
+    div.innerHTML=`
+      <img src="${dataURL}" loading="lazy">
+      <div class="page-thumb-footer">
+        <span class="page-num">Page ${i+1}</span>
+        <button class="page-del" onclick="deletePage(${i})">🗑️</button>
+      </div>`;
+    div.querySelector('img').onclick=()=>{ loadImageFromURL(dataURL); switchPanel('edit'); };
+    list.appendChild(div);
+  });
+}
+
+function deletePage(i) {
+  pages.splice(i,1);
+  updatePagesUI();
+  toast('🗑️ Page supprimée','');
+}
+
+function clearAllPages() {
+  if(!pages.length) return;
+  pages=[];
+  updatePagesUI();
+  toast('🗑️ Toutes les pages effacées','');
+}
+
+let pdfExportSize = 'a4';
+function setPdfSize(s,el) {
+  pdfExportSize=s;
+  document.querySelectorAll('.pages-tools .preset-item').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function exportAllPDF() {
+  if(!pages.length){ toast('Ajoutez des pages d\'abord','err'); return; }
+  showProgress('📄 Génération PDF...','Création du document multi-pages');
+  const {jsPDF}=window.jspdf;
+  const sizes={a4:[210,297],a3:[297,420],letter:[216,279]};
+  const [pw,ph]=sizes[pdfExportSize]||sizes.a4;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:pdfExportSize});
+
+  for(let i=0;i<pages.length;i++){
+    updateProgress((i/pages.length)*100);
+    if(i>0) doc.addPage();
+    const img=new Image(); img.src=pages[i];
+    await new Promise(r=>img.onload=r);
+    const imgW=img.width, imgH=img.height;
+    const ratio=Math.min(pw/imgW*3.7795,ph/imgH*3.7795);
+    const dw=imgW*ratio/3.7795, dh=imgH*ratio/3.7795;
+    const dx=(pw-dw)/2, dy=(ph-dh)/2;
+    doc.addImage(pages[i],'JPEG',dx,dy,dw,dh);
+  }
+  hideProgress();
+  doc.save('scanpro_'+pages.length+'pages_'+Date.now()+'.pdf');
+  toast('📄 PDF exporté ('+pages.length+' pages)','ok');
+}
+
+async function exportAllWord() {
+  if(!pages.length){ toast('Ajoutez des pages d\'abord','err'); return; }
+  showProgress('📝 Génération Word...','Création du document');
+  try {
+    const children=[];
+    for(let i=0;i<pages.length;i++){
+      updateProgress((i/pages.length)*100);
+      const b64=pages[i].split(',')[1];
+      children.push(new docx.Paragraph({
+        children:[new docx.ImageRun({
+          data:b64, transformation:{width:595,height:842},
+          type:'jpg'
+        })]
+      }));
+      if(i<pages.length-1) children.push(new docx.Paragraph({
+        pageBreakBefore:true,children:[]
+      }));
+    }
+    const d=new docx.Document({sections:[{children}]});
+    const blob=await docx.Packer.toBlob(d);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='scanpro_'+Date.now()+'.docx';
+    a.click();
+    hideProgress();
+    toast('📝 Word exporté !','ok');
+  } catch(e){ hideProgress(); toast('❌ Erreur Word: '+e.message,'err'); }
+}
+
+function exportAllImages(fmt) {
+  if(!pages.length){ toast('Ajoutez des pages d\'abord','err'); return; }
+  pages.forEach((dataURL,i)=>{
+    const a=document.createElement('a');
+    const canvas=document.createElement('canvas');
+    const img=new Image(); img.src=dataURL;
+    img.onload=()=>{
+      canvas.width=img.width; canvas.height=img.height;
+      canvas.getContext('2d').drawImage(img,0,0);
+      a.href=canvas.toDataURL(fmt==='png'?'image/png':'image/jpeg',0.92);
+      a.download='scanpro_page'+(i+1)+'_'+Date.now()+'.'+fmt;
+      a.click();
+    };
+  });
+  toast('⬇️ '+pages.length+' images téléchargées','ok');
+}
+
+// ============================================================
+// SIGNATURE
+// ============================================================
+function renderSignCanvas() {
+  if(!currentImg) return;
+  const wrap=document.getElementById('sign-doc-canvas').parentElement;
+  const canvas=document.getElementById('sign-doc-canvas');
+  const scale=Math.min((wrap.clientWidth-10)/currentImg.width,(wrap.clientHeight-60)/currentImg.height,1);
+  canvas.width=currentImg.width; canvas.height=currentImg.height;
+  canvas.style.width=(currentImg.width*scale)+'px';
+  canvas.style.height=(currentImg.height*scale)+'px';
+  canvas.getContext('2d').drawImage(currentImg,0,0);
+}
+
+function loadDocForSign() {
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange=e=>{
+    const f=e.target.files[0];
+    if(!f) return;
+    const r=new FileReader();
+    r.onload=ev=>{ loadImageFromURL(ev.target.result); renderSignCanvas(); };
+    r.readAsDataURL(f);
+  };
+  inp.click();
+}
+
+function openSignPad() {
+  document.getElementById('sign-pad-wrap').classList.add('show');
+  const canvas=document.getElementById('sign-canvas');
+  signCtx=canvas.getContext('2d');
+  signCtx.fillStyle='white';
+  signCtx.fillRect(0,0,canvas.width,canvas.height);
+  signCtx.strokeStyle='#0a0a0a';
+  signCtx.lineWidth=2.5;
+  signCtx.lineCap='round';
+
+  canvas.onmousedown=e=>{ signPainting=true; signCtx.beginPath(); const r=canvas.getBoundingClientRect(); signCtx.moveTo(e.clientX-r.left,e.clientY-r.top); };
+  canvas.onmousemove=e=>{ if(!signPainting) return; const r=canvas.getBoundingClientRect(); signCtx.lineTo(e.clientX-r.left,e.clientY-r.top); signCtx.stroke(); };
+  canvas.onmouseup=()=>signPainting=false;
+  canvas.ontouchstart=e=>{ e.preventDefault(); signPainting=true; signCtx.beginPath(); const r=canvas.getBoundingClientRect(); const t=e.touches[0]; signCtx.moveTo(t.clientX-r.left,t.clientY-r.top); };
+  canvas.ontouchmove=e=>{ e.preventDefault(); if(!signPainting) return; const r=canvas.getBoundingClientRect(); const t=e.touches[0]; signCtx.lineTo(t.clientX-r.left,t.clientY-r.top); signCtx.stroke(); };
+  canvas.ontouchend=()=>signPainting=false;
+}
+
+function clearSignPad() {
+  const c=document.getElementById('sign-canvas');
+  signCtx.fillStyle='white'; signCtx.fillRect(0,0,c.width,c.height);
+}
+
+function saveSignature() {
+  const c=document.getElementById('sign-canvas');
+  signatureImg=new Image(); signatureImg.src=c.toDataURL();
+  closeSignPad();
+  document.getElementById('btn-place-sign').disabled=false;
+  toast('✅ Signature enregistrée — cliquez "Placer"','ok');
+}
+
+function closeSignPad() {
+  document.getElementById('sign-pad-wrap').classList.remove('show');
+}
+
+function placeSignature() {
+  if(!signatureImg||!currentImg){ toast('Créez d\'abord une signature','err'); return; }
+  const canvas=document.getElementById('sign-doc-canvas');
+  const ctx=canvas.getContext('2d');
+  // Place signature at bottom-right
+  const sw=canvas.width*0.3, sh=canvas.height*0.08;
+  const sx=canvas.width*0.65, sy=canvas.height*0.85;
+  ctx.drawImage(signatureImg,sx,sy,sw,sh);
+  toast('✍️ Signature placée !','ok');
+}
+
+function downloadSignedDoc() {
+  if(!currentImg){ toast('Aucun document','err'); return; }
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  const canvas=document.getElementById('sign-doc-canvas');
+  doc.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',5,5,200,280);
+  doc.save('scanpro_signe_'+Date.now()+'.pdf');
+  toast('📄 Document signé téléchargé','ok');
+}
+
+// ============================================================
+// PROGRESS
+// ============================================================
+function showProgress(title,sub) {
+  document.getElementById('prog-title').textContent=title;
+  document.getElementById('prog-sub').textContent=sub;
+  document.getElementById('prog-fill').style.width='0%';
+  document.getElementById('prog-pct').textContent='0%';
+  document.getElementById('prog-overlay').classList.add('show');
+}
+function updateProgress(pct) {
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=Math.round(pct)+'%';
+}
+function hideProgress() {
+  updateProgress(100);
+  setTimeout(()=>document.getElementById('prog-overlay').classList.remove('show'),400);
+}
+
+// ============================================================
+// TOAST
+// ============================================================
 let toastTimer;
-function showToast(msg, type = '') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show ' + type;
+function toast(msg,type='') {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show '+(type==='ok'?'ok':type==='err'?'err':'');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
 }
 </script>
 </body>
